@@ -155,8 +155,8 @@ def main(argv):
         output_f.write(json.dumps(type2rank2mem))
 
 
-    clean_times = {'navi-dom': list(), 'navi-load': list(), 'response-dom': list(), 'response-load': list()} 
-    isolate_times = {'navi-dom': list(), 'navi-load': list(), 'response-dom': list(), 'response-load': list()} 
+    clean_times = {'navi-dom': list(), 'navi-load': list(), 'response-dom': list(), 'response-load': list(),  'pure': list()} 
+    isolate_times = {'navi-dom': list(), 'navi-load': list(), 'response-dom': list(), 'response-load': list(), 'pure': list()} 
     clean_mems = list()
     isolate_mems = list()
     type2rank2overhead = {'time': dict(), 'memory': dict()}
@@ -194,9 +194,9 @@ def main(argv):
         if rank not in isolate_time_ranks:
             continue
         if rank not in type2rank2overhead['time']:
-            type2rank2overhead['time'][rank] = {'navi-dom': 0, 'navi-load': 0, 'response-dom': 0, 'response-load': 0} #, 'pure': 0}
+            type2rank2overhead['time'][rank] = {'navi-dom': 0, 'navi-load': 0, 'response-dom': 0, 'response-load': 0, 'pure': 0}
 
-        for key in ['navi-dom', 'navi-load', 'response-dom', 'response-load']: #, 'pure']:
+        for key in ['navi-dom', 'navi-load', 'response-dom', 'response-load', 'pure']:
             overhead = type2rank2time['isolate'][rank][key] / (type2rank2time['clean'][rank][key] * 1.0)
             type2rank2overhead['time'][rank][key] = overhead
 

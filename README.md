@@ -268,7 +268,7 @@ The above command will execute the following python scripts. You may comment som
 
 * isolation_and_record_performance.py: lanuch JSIsolate in the policy enforcement mode and log the performance data
 
-  If some websites cannot finish loading within the timeout after multiple tries, you may enlarge the timeout to, e.g., 360 and 320 in line 799 and 810, respectively. In large-scale scripts, however, we recommend to use a small timeout to save some time.
+  If some websites cannot finish loading within the timeout after multiple tries, you may enlarge the timeout to, e.g., 360 and 320 in line 798 and 809, respectively. In large-scale scripts, however, we recommend to use a small timeout to save some time.
 
 * compare_exception_nums.py: compare the JS exception numbers to evaluate the compatibility
 
