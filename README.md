@@ -295,7 +295,7 @@ Chromium version 71.0.3578.98 uses `Document::IsInDocumentWrite()` to check whet
 
 Unfortunately, as Chromium follows a complex logic for tracking the string positions, sometimes we may fail to capture the precise start and end positions. Therefore, in rare cases, JSIsolate will misclassify a static script as a dynamic one, which may cause compatibility issues.
 
-Nevertheless, the problem is a known issue with Chromium (see chromium/src/third_party/blink/renderer/core/script/script_loader.cc line 400). And we observe very rare problematic cases, i.e., 1 (http://www.china.com.cn) out of the top 100. We leave this as a future work to fix the problem.
+Nevertheless, the problem is a known issue with Chromium (see chromium/src/third_party/blink/renderer/core/script/script_loader.cc line 400 in version version 71.0.3578.98). And we observe very rare problematic cases, i.e., 1 (http://www.china.com.cn) out of the top 100. We leave this as a future work to fix the problem.
 
 ## Contact ##
 
