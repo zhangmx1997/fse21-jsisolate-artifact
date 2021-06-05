@@ -10,7 +10,7 @@ JSIsolate is implemented on Chromium (version 71.0.3578.98) and have been tested
 
 We provide the data analysis python scripts in folder *python_scripts*. 
 
-We release the compiled binaries [here](https://zenodo.org/record/4903078), with a DOI of __10.5281/zenodo.4903078__. Please download the *.zip files and put the unzipped folders in the _binaries_ folder first.
+We release the compiled binaries [here](https://zenodo.org/record/4903078), with a DOI of __10.5281/zenodo.4903078__. Please download the *.zip files, create a _binaries_ folder in the current folder, and put the unzipped folders in the _binaries_ folder first.
 
 All the scripts have been tested in __Python 2.7.13__. The required python modules are listed in _REQUIREMENTS.md_. Please install them for python 2.7.13 before running the scripts.
 
