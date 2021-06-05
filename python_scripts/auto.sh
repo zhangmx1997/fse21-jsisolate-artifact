@@ -21,8 +21,8 @@ time python collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_I
 #time python collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1
 #
 #date
-#echo python compute_collection_overhead.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
-#time python compute_collection_overhead.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
+#echo python compute_collection_overhead.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -o $LOG_DIR -n $NUM_INSTANCES
+#time python compute_collection_overhead.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -o $LOG_DIR -n $NUM_INSTANCES
 
 
 

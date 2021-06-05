@@ -10,7 +10,7 @@ JSIsolate is implemented on Chromium (version 71.0.3578.98) and have been tested
 
 We provide the data analysis python scripts in folder *python_scripts*. 
 
-We release the compiled binaries [here](https://zenodo.org/record/4903078), with a DOI of __10.5281/zenodo.4903078__. Please download the *.zip files and put the unzipped folders in the _binaires_ folder first.
+We release the compiled binaries [here](https://zenodo.org/record/4903078), with a DOI of __10.5281/zenodo.4903078__. Please download the *.zip files and put the unzipped folders in the _binaries_ folder first.
 
 All the scripts have been tested in __Python 2.7.13__. The required python modules are listed in _REQUIREMENTS.md_. Please install them for python 2.7.13 before running the scripts.
 
@@ -266,7 +266,7 @@ The above command will execute the following python scripts. You may comment som
 
 * domain_level_analyze_dependency.py: generate domain-level isolation policies
 
-* isolation_and_record_performance.py: lanuch JSIsolate in the policy enforcement mode and log the performance data
+* isolation_and_record_performance.py: launch JSIsolate in the policy enforcement mode and log the performance data
 
   If some websites cannot finish loading within the timeout after multiple tries, you may enlarge the timeout to, e.g., 360 and 320 in line 798 and 809, respectively. In large-scale scripts, however, we recommend to use a small timeout to save some time.
 
