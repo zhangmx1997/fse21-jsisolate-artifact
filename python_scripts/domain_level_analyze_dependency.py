@@ -145,6 +145,18 @@ def get_static_scripts(id2url_f, id2parent_f):
             if script_id not in sid2cid:
                 sid2cid[script_id] = set()
             sid2cid[script_id].add((cnt, context_id))
+
+            if not script_url.startswith('http'):
+                script_source_f = '.'.join(id2url_f.split('.')[0:3]) + '.' + str(script_id) + '.script'
+                try:
+                    with open(script_source_f, 'r') as input_ssf:
+                        for line_ss in input_ssf:
+                            script_url = line_ss.split()[0]
+                            if script_url.startswith('0x'):
+                                script_url = ''
+                            break
+                except Exception as e:
+                    pass
             script2url[(script_id, context_id)] = script_url
 
         cid2sid = dict()
@@ -264,6 +276,8 @@ def get_static_scripts(id2url_f, id2parent_f):
                     with open(script_file, 'r') as input_f:
                         for line in input_f:
                             script_url = line.split('\n')[0].split()[0]
+                            if script_url.startswith('0x'):
+                                script_url = ''
                             break
                         static_id2url[script] = script_url
                 except Exception as e:
@@ -300,12 +314,12 @@ def determine_script_privilege(url, first_party_domain):
 
         if script_domain == first_party_domain:
             script_priv = 1
-        elif script_domain in first_party_domain or first_party_domain in script_domain:
-            script_priv = 1
         else:
             script_priv = 3
     except Exception as e:
         pass
+    if url == '':
+        script_priv = 1
     return script_priv
 
 
@@ -676,7 +690,6 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                             priv2scripts['1'].add(script)
                                             first_party_scripts.append(script)
 
-
                             processed_scripts = list()
                             to_be_determined = list()
                             propagate_queue = first_party_scripts
@@ -740,7 +753,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                             while found_new_trusted_domain:
                                 found_new_trusted_domain = False
 
-                                trusted_domains = set()
+                                cid2trusted_domains = dict()
                                 for priv, scripts1 in priv2scripts.items():
                                     if priv != '1':
                                         continue
@@ -754,8 +767,13 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                             script_domain1 = tb +'.'+tc
                                         except Exception as e:
                                             script_domain1 = script_url1
-                                        trusted_domains.add(script_domain1)
-                                old_cnt = len(trusted_domains)
+                                        cid = script1[0]
+                                        if cid not in cid2trusted_domains:
+                                            cid2trusted_domains[cid] = set()
+                                        cid2trusted_domains[cid].add(script_domain1)
+                                old_cnt = 0
+                                for cid, trusted_domains in cid2trusted_domains.items():
+                                    old_cnt += len(trusted_domains)
 
                                 to1p = set()
                                 for priv, scripts in priv2scripts.items():
@@ -771,7 +789,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                             script_domain1 = tb +'.'+tc
                                         except Exception as e:
                                             script_domain1 = script_url1
-                                        if script_domain1 in  trusted_domains:
+                                        if script[0] in cid2trusted_domains and script_domain1 in cid2trusted_domains[script[0]]:
                                             to1p.add(script)
                                 for script in to1p:
                                     try:
@@ -781,7 +799,6 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                         pass
                                     priv2scripts['1'].add(script)
                                     first_party_scripts.append(script)
-                                    #print('3p->1p', script)
 
 
 
@@ -814,9 +831,6 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                                 priv2scripts['1'].add(write)
                                                 propagate_queue.append(write)
 
-                                #for script, reads in script2reads.items():
-                                #    print(rank, script, reads)
-
 
                                 # some scripts might be changed from 3p->1p during the 2nd propagation
                                 # now validate 'both' scripts again
@@ -842,7 +856,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                             priv2scripts['1'].add(script)
                                         except Exception as e:
                                             pass
-                                new_trusted_domains = set()
+                                new_cid2trusted_domains = dict()
                                 for priv, scripts1 in priv2scripts.items():
                                     if priv != '1':
                                         continue
@@ -856,12 +870,15 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                             script_domain1 = tb +'.'+tc
                                         except Exception as e:
                                             script_domain1 = script_url1
-                                        new_trusted_domains.add(script_domain1)
-                                new_cnt = len(new_trusted_domains)
-                                #print(new_cnt, old_cnt, trusted_domains, new_trusted_domains)
+                                        cid = script1[0]
+                                        if cid not in new_cid2trusted_domains:
+                                            new_cid2trusted_domains[cid] = set()
+                                        new_cid2trusted_domains[cid].add(script_domain1)
+                                new_cnt = 0
+                                for cid, trusted_domains in new_cid2trusted_domains.items():
+                                    new_cnt += len(trusted_domains)
                                 if new_cnt > old_cnt:
                                     found_new_trusted_domain = True
-
 
                             url2configs = dict()
                             for priv, scripts in priv2scripts.items():
@@ -890,18 +907,28 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
 
                                     for write in script2writes[script]: # write: scripts that are read by the current script
                                         write_priv = determine_script_privilege(static_id2url[write], first_party_domain)
-                                        if script_priv != 1 and write_priv == 1:
+                                        if script_priv != 1: # current_script (3) read 1, or current_script (3) read 3
                                             # [script] reads [write]
                                             if write not in config['read']:
                                                 config['read'][str(write)] = list()
+                                            if script_priv != 1 and write_priv != 1:
+                                                duplicate = True
+                                            else:
+                                                duplicate = False
                                             for info in script2write2infos[script][write]:
+                                                info += (duplicate,)
                                                 config['read'][str(write)].append(info)
                                     for read in script2reads[script]: # read: scripts that read the current script
                                         read_priv = determine_script_privilege(static_id2url[read], first_party_domain)
-                                        if script_priv != 1 and read_priv == 1:
+                                        if script_priv != 1:
                                             if read not in config['read by']:
                                                 config['read by'][str(read)] = list()
+                                            if script_priv != 1 and read_priv != 1:
+                                                duplicate = True
+                                            else:
+                                                duplicate = False
                                             for info in script2read2infos[script][read]:
+                                                info += (duplicate,)
                                                 config['read by'][str(read)].append(info)
 
 
@@ -918,14 +945,14 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
 
                                     script_origin = urlparse(script_url).scheme + '://' + urlparse(script_url).netloc
                                     frame_origin = urlparse(frame_url).scheme + '://' + urlparse(frame_url).netloc
-                                    if script_url == '' or script_url == frame_url or (not script_url.endswith('.js') and script_origin == frame_origin):
+                                    if script_url == '' or script_url == frame_url: 
                                         continue
                                     else:
                                         try:
                                             ta, tb, tc = extract(script_url)
                                             script_domain = tb + '.' + tc
 
-                                            ta, tb, tc = extract(frame_url_url)
+                                            ta, tb, tc = extract(frame_url)
                                             frame_domain = tb + '.' + tc
                                             
                                             if script_domain == frame_domain:
@@ -1001,7 +1028,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
             output_file = str(rank) + '.configs'
             output_file = os.path.join(raw_input_dir, output_file)
             output_file = os.path.join(processed_data_dir, output_file)
-            domain2ids = dict()
+            url2domain2ids = dict()
             for url, configs in url2configs.items():
                 for config in configs:
                     context_id = config['world_id']
@@ -1015,13 +1042,18 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                             script_domain = script_url
                     else:
                         script_domain = script_url
-                    if script_domain not in domain2ids:
-                        domain2ids[script_domain] = set()
-                    domain2ids[script_domain].add(context_id)
-            trusted_domains = set()
-            for domain, ids in domain2ids.items():
-                if '1' in ids:
-                    trusted_domains.add(domain)
+                    if url not in url2domain2ids:
+                        url2domain2ids[url] = dict()
+                    if script_domain not in url2domain2ids[url]:
+                        url2domain2ids[url][script_domain] = set()
+                    url2domain2ids[url][script_domain].add(context_id)
+            url2trusted_domains = dict()
+            for url, domain2ids in url2domain2ids.items():
+                if url not in url2trusted_domains:
+                    url2trusted_domains[url] = set()
+                for domain, ids in domain2ids.items():
+                    if '1' in ids:
+                        url2trusted_domains[url].add(domain)
 
             corrected_url2configs = dict()
             for url, configs in url2configs.items():
@@ -1044,7 +1076,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                     else:
                         script_domain = script_url
                     correct_config = config
-                    if script_domain in trusted_domains: # propagate trust based on domains
+                    if script_domain in url2trusted_domains[url]: # propagate trust based on domains
                         correct_config['world_id'] = '1'
 
                     corrected_url2configs[url].append(correct_config)

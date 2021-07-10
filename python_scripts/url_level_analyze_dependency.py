@@ -150,6 +150,18 @@ def get_static_scripts(id2url_f, id2parent_f):
                 sid2cid[script_id] = set()
             #sid2cid[script_id].add(context_id)
             sid2cid[script_id].add((cnt, context_id))
+
+            if not script_url.startswith('http'):
+                script_source_f = '.'.join(id2url_f.split('.')[0:3]) + '.' + str(script_id) + '.script'
+                try:
+                    with open(script_source_f, 'r') as input_ssf:
+                        for line_ss in input_ssf:
+                            script_url = line_ss.split()[0]
+                            if script_url.startswith('0x'):
+                                script_url = ''
+                            break
+                except Exception as e:
+                    pass
             script2url[(script_id, context_id)] = script_url
 
         cid2sid = dict()
@@ -271,6 +283,8 @@ def get_static_scripts(id2url_f, id2parent_f):
                     with open(script_file, 'r') as input_f:
                         for line in input_f:
                             script_url = line.split('\n')[0].split()[0]
+                            if script_url.startswith('0x'):
+                                script_url = ''
                             break
                         static_id2url[script] = script_url
                 except Exception as e:
@@ -307,12 +321,12 @@ def determine_script_privilege(url, first_party_domain):
 
         if script_domain == first_party_domain:
             script_priv = 1
-        elif script_domain in first_party_domain or first_party_domain in script_domain:
-            script_priv = 1
         else:
             script_priv = 3
     except Exception as e:
         pass
+    if url == '':
+        script_priv = 1
     return script_priv
 
 
@@ -684,7 +698,6 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                 if script_priv == 1 or script in forced_first_party_scripts:
                                     priv2scripts['1'].add(script)
                                     first_party_scripts.append(script)
-                                    #print('1p', script)
                                 else:
                                     try:
                                         ta, tb, tc = extract(first_party_domain)
@@ -707,7 +720,6 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                             #correct_config['world_id'] = '1'
                                             priv2scripts['1'].add(script)
                                             first_party_scripts.append(script)
-
 
                             processed_scripts = list()
                             to_be_determined = list()
@@ -745,7 +757,6 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                     # can only be 3p
                                     third_party_scripts.append(script)
                                     priv2scripts['3'].add(script)
-                                    #print('3p', script)
                                     
 
                             # We may have misclassified some scripts: 'both' -> '1p'
@@ -796,20 +807,30 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
 
                                     for write in script2writes[script]: # write: scripts that are read by the current script
                                         write_priv = determine_script_privilege(static_id2url[write], first_party_domain)
-                                        if script_priv != 1 and write_priv == 1:
+                                        if script_priv != 1:
                                             # [script] reads [write]
                                             if write not in config['read']:
                                                 config['read'][str(write)] = list()
+                                            if script_priv != 1 and write_priv != 1:
+                                                duplicate = True
+                                            else:
+                                                duplicate = False
                                             for info in script2write2infos[script][write]:
+                                                info += (duplicate,)
                                                 config['read'][str(write)].append(info)
+
                                     for read in script2reads[script]: # read: scripts that read the current script
                                         read_priv = determine_script_privilege(static_id2url[read], first_party_domain)
-                                        if script_priv != 1 and read_priv == 1:
+                                        if script_priv != 1:
                                             if read not in config['read by']:
                                                 config['read by'][str(read)] = list()
+                                            if script_priv != 1 and read_priv != 1:
+                                                duplicate = True
+                                            else:
+                                                duplicate = False
                                             for info in script2read2infos[script][read]:
+                                                info += (duplicate,)
                                                 config['read by'][str(read)].append(info)
-
 
 
                                   
@@ -823,7 +844,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
 
                                     script_origin = urlparse(script_url).scheme + '://' + urlparse(script_url).netloc
                                     frame_origin = urlparse(frame_url).scheme + '://' + urlparse(frame_url).netloc
-                                    if script_url == '' or script_url == frame_url or (not script_url.endswith('.js') and script_origin == frame_origin):
+                                    if script_url == '' or script_url == frame_url:
                                         continue
                                         #pass
                                     else:
@@ -831,7 +852,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                             ta, tb, tc = extract(script_url)
                                             script_domain = tb + '.' + tc
 
-                                            ta, tb, tc = extract(frame_url_url)
+                                            ta, tb, tc = extract(frame_url)
                                             frame_domain = tb + '.' + tc
                                             
                                             if script_domain == frame_domain:

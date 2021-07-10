@@ -3,7 +3,7 @@ from urlparse import urlparse
 
 def determine_script_privilege(url, first_party_domain):
     global extract
-   
+    
     try:
         script_priv = -1
         ta, tb, tc = extract(url)
@@ -26,7 +26,11 @@ def measure(user_dir, task_id, start, end):
     current_dir = os.getcwd()
 
     input_dir = user_dir + '_logs_collect'
-    files = os.listdir(input_dir)
+    try:
+        files = os.listdir(input_dir)
+    except Exception as e:
+        print(e)
+        return
     files =  [f for f in files if f.endswith('.configs')]
 
     for f in files:
@@ -58,6 +62,7 @@ def measure(user_dir, task_id, start, end):
                         script_domain = tb + '.' + tc
                     except Exception as e:
                         script_domain = config['match']
+                    
 
                     if script_domain != first_party_domain:
                         rank2type2info[rank]['static_3p'] += 1
@@ -83,23 +88,25 @@ def measure(user_dir, task_id, start, end):
         for url, configs in url2configs.items():
             cnt += len(configs)
             for config in configs:
+
+                if config['world_id'] == '3':
+                    continue
+
                 for s, infos in config['read'].items():
                     if rank not in rank2script2cnt:
                         rank2script2cnt[rank] = dict()
                     if config['script_id'] not in rank2script2cnt[rank]:
                         rank2script2cnt[rank][config['script_id']]  = 0
+                    
                     rank2script2cnt[rank][config['script_id']] += len(infos)
+
                 for s, infos in config['read by'].items():
                     if rank not in rank2script2cnt:
                         rank2script2cnt[rank] = dict()
                     if config['script_id'] not in rank2script2cnt[rank]:
                         rank2script2cnt[rank][config['script_id']]  = 0
-                    rank2script2cnt[rank][config['script_id']] += len(infos)
-
-
-
-
-
+                    correct_infos = [ii for ii in infos if not ii[-1]]
+                    rank2script2cnt[rank][config['script_id']] += len(correct_infos)
 
 
 
@@ -218,6 +225,9 @@ def main(argv):
         #    continue
         if int(rank) > end:
             continue
+        if int(rank) < start:
+            continue
+
         static_inline_cnt += type2info['inline']
         static_external_cnt += type2info['external']
         static_external_3p_cnt += type2info['static_3p']
@@ -239,10 +249,6 @@ def main(argv):
         if len(type2info['3pto1p']) > 0:
             to1p_ranks.add(rank)
             to1p_rank2info[rank] = type2info['3pto1p']
-            #print(rank)
-            #for info_ in type2info['3pto1p']:
-            #    #if not info_[-1].startswith('data:'):
-            #    print('\t%s'%(info_))
 
 
         if len(type2info['1pto3p']) > 0:
@@ -281,7 +287,11 @@ def main(argv):
     total_script_cnt = 0
     total_ranks = set()
     for rank, script2cnt in rank2script2cnt.items():
-        if int(rank) not in list_ranks:
+        #if int(rank) not in list_ranks:
+        #    continue
+        if int(rank) > end:
+            continue
+        if int(rank) < start:
             continue
         total_ranks.add(rank)
         for script, cnt in script2cnt.items():
@@ -290,7 +300,6 @@ def main(argv):
     print('#Ranks: %d'%(len(total_ranks)))
     print('#Script: %d'%(total_script_cnt))
     print('#Accesses: %d'%(total_cnt))
-
 
 
 

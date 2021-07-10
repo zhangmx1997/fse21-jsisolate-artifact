@@ -10,14 +10,31 @@ JSIsolate is implemented on Chromium (version 71.0.3578.98) and have been tested
 
 We provide the data analysis python scripts in folder *python_scripts*. 
 
-We release the compiled binaries [here](https://zenodo.org/record/4903078), with a DOI of __10.5281/zenodo.4903078__. Please download the *.zip files, create a _binaries_ folder in the current folder, and put the unzipped folders in the _binaries_ folder first.
+We release the compiled binaries [here](https://zenodo.org/record/4903078), with a DOI of __10.5281/zenodo.4903078__. Please download the *.zip files, create a _binaries_ folder in the current folder, and put the unzipped folders in the _binaries_ folder first. The resulting directory should follow a structure of:
 
-All the scripts have been tested in __Python 2.7.13__. The required python modules are listed in _REQUIREMENTS.md_. Please install them for python 2.7.13 before running the scripts.
+fse21-jsisolate-artifact/
+├── python_scripts/
+│   ├── auto.sh
+│   ├── chromedriver
+│   ├── collect_logs.py
+│   └── ... ...
+├── binaries/
+│   ├── clean/
+|   ├── dump/
+│   └── isolation/
+├── CONTACT.md
+├── INSTALL.md
+├── README.md
+├── requirements.txt
+└── ... ...
 
-You also need to install chromedriver (version 2.46.628388) that we provide as follows.
+All the scripts have been tested in __Python 2.7.13__. 
+
+You need to install some python modules and the chromedriver (version 2.46.628388) as follows.
 
 ```shell
-sudo cp chromedriver /usr/local/bin
+pip install -r requirements.txt
+sudo cp python_scripts/chromedriver /usr/local/bin
 ```
 
 ## Executables

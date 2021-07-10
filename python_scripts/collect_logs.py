@@ -810,8 +810,8 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                     alert1 = browser.switch_to_alert()
                     #browser.switch_to_window(current_handle)
                     alert1.dismiss()
-                except Exception as e:
-                    pass
+                #except Exception as e:
+                #    pass
 
 
                 # we wait for at most 1 second for reading the current_url
