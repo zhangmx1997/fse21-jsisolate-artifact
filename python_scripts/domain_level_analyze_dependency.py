@@ -3,7 +3,7 @@ import signal, psutil, tldextract
 from multiprocessing import Process as Task, Queue
 import multiprocessing as mp
 import sys, shutil 
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 
 
@@ -160,17 +160,17 @@ def get_static_scripts(id2url_f, id2parent_f):
             script2url[(script_id, context_id)] = script_url
 
         cid2sid = dict()
-        for sid, cids in sid2cid.items():
+        for sid, cids in list(sid2cid.items()):
             for cid in cids:
                 if cid[1] not in cid2sid:
                     cid2sid[cid[1]] = set()
                 cid2sid[cid[1]].add(sid)
 
-        for cid, sids in cid2sid.items():
+        for cid, sids in list(cid2sid.items()):
             if len(sids) == 1: # only 1 script in cid
                 forced_first_party_scripts.append((cid, list(sids)[0]))
 
-        for sid, cids in sorted(sid2cid.items(), key=lambda t:t[0]):
+        for sid, cids in sorted(list(sid2cid.items()), key=lambda t:t[0]):
             if len(cids) > 1:
                 # script id shared in multiple frames
                 # now check if the context contain other scripts with non-shared sid
@@ -239,17 +239,17 @@ def get_static_scripts(id2url_f, id2parent_f):
                             cid2frameurl[min_cid] = sorted(list(sid2frameurl[sid]), key=lambda t:t[0])[0][1]
     
     
-    for cid, url in cid2frameurl.items(): # cid: (cnt, context_id)
+    for cid, url in list(cid2frameurl.items()): # cid: (cnt, context_id)
         if url not in frameurl2cid:
             frameurl2cid[url] = list()
         frameurl2cid[url].append(cid)
 
     unique_frameurl2cid = dict()
-    for url, cids in frameurl2cid.items():
+    for url, cids in list(frameurl2cid.items()):
         min_cid = sorted(cids, key=lambda t:t[0])[0][1]
         unique_frameurl2cid[url] = min_cid
     static_script_ids = list()
-    for script, parent in script2parent.items():
+    for script, parent in list(script2parent.items()):
         script_id = int(script[0])
         frame_url = script[1]
         try:
@@ -260,7 +260,7 @@ def get_static_scripts(id2url_f, id2parent_f):
             static_script_ids.append((context_id, script_id))
 
     static_id2url = dict() # (context_id, script-id) -> script_url
-    for script, url in script2url.items():
+    for script, url in list(script2url.items()):
         script_id = int(script[0])
         context_id = script[1]
         if (context_id, script_id) in static_script_ids:
@@ -283,13 +283,13 @@ def get_static_scripts(id2url_f, id2parent_f):
                 except Exception as e:
                     pass
         except Exception as e:
-            print(script, static_id2url)
+            print((script, static_id2url))
 
     unique_cid2frameurl = dict()
-    for frameurl, cid in sorted(unique_frameurl2cid.items(), key=lambda t:t[0], reverse=True):
+    for frameurl, cid in sorted(list(unique_frameurl2cid.items()), key=lambda t:t[0], reverse=True):
         unique_cid2frameurl[cid] = frameurl
     frame2url = dict() # (context_id) -> (frame_url, frame_domain)
-    for cid, frameurl in unique_cid2frameurl.items():
+    for cid, frameurl in list(unique_cid2frameurl.items()):
         try:
             ta, tb, tc = extract(frameurl)
             frame_domain = tb + '.' + tc
@@ -359,7 +359,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
             os.mkdir(raw_output_dir)
         rank2url2configs = dict()
 
-        for rank, func_files in rank2access_files.items():
+        for rank, func_files in list(rank2access_files.items()):
             if rank > end:
                 continue
             if rank % num_instances != task_id or rank in processed_list or rank < start:
@@ -471,7 +471,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                                     continue
                                                 new_group_id = min(group_id, write_group_id)
                                                 old_group_id = max(group_id, write_group_id)
-                                                for script, group in script2group.items():
+                                                for script, group in list(script2group.items()):
                                                     if group == old_group_id:
                                                         script2group[script] = new_group_id
                                         else:
@@ -605,13 +605,13 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                     try:
                                          exc_type, exc_value, exc_traceback = sys.exc_info()
                                          lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                                         print(''.join('!! ' + line for line in lines))
+                                         print((''.join('!! ' + line for line in lines)))
                                          sys.stdout.flush()
                                     except Exception:
                                          pass
 
                             group2scripts = dict()
-                            for script, group in script2group.items():
+                            for script, group in list(script2group.items()):
                                 if group not in group2scripts:
                                     group2scripts[group] = set()
                                 group2scripts[group].add(script)
@@ -624,7 +624,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                     # this script is never read by other scripts, we record an empty set for it
                                     script2reads[script] = set()
 
-                            for script, reads in script2reads.items():
+                            for script, reads in list(script2reads.items()):
                                 for read in reads:
                                     if read not in script2writes:
                                         script2writes[read] = set()
@@ -639,8 +639,8 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                             for script in static_script_ids:
                                 if script not in script2read2infos:
                                     script2read2infos[script] = dict()
-                            for script, read2infos in script2read2infos.items():
-                                for read, infos in read2infos.items():
+                            for script, read2infos in list(script2read2infos.items()):
+                                for read, infos in list(read2infos.items()):
                                     if read not in script2write2infos:
                                         script2write2infos[read] = dict()
                                     script2write2infos[read][script] = infos
@@ -754,7 +754,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                 found_new_trusted_domain = False
 
                                 cid2trusted_domains = dict()
-                                for priv, scripts1 in priv2scripts.items():
+                                for priv, scripts1 in list(priv2scripts.items()):
                                     if priv != '1':
                                         continue
                                     for script1 in scripts1:
@@ -772,11 +772,11 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                             cid2trusted_domains[cid] = set()
                                         cid2trusted_domains[cid].add(script_domain1)
                                 old_cnt = 0
-                                for cid, trusted_domains in cid2trusted_domains.items():
+                                for cid, trusted_domains in list(cid2trusted_domains.items()):
                                     old_cnt += len(trusted_domains)
 
                                 to1p = set()
-                                for priv, scripts in priv2scripts.items():
+                                for priv, scripts in list(priv2scripts.items()):
                                     if priv != '3':
                                         continue
                                     for script in scripts:
@@ -795,7 +795,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                     try:
                                         priv2scripts['3'].remove(script)
                                         third_party_scripts.remove(script)
-                                    except  Exception  as e:
+                                    except  Exception as e:
                                         pass
                                     priv2scripts['1'].add(script)
                                     first_party_scripts.append(script)
@@ -857,7 +857,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                         except Exception as e:
                                             pass
                                 new_cid2trusted_domains = dict()
-                                for priv, scripts1 in priv2scripts.items():
+                                for priv, scripts1 in list(priv2scripts.items()):
                                     if priv != '1':
                                         continue
                                     for script1 in scripts1:
@@ -875,13 +875,13 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                             new_cid2trusted_domains[cid] = set()
                                         new_cid2trusted_domains[cid].add(script_domain1)
                                 new_cnt = 0
-                                for cid, trusted_domains in new_cid2trusted_domains.items():
+                                for cid, trusted_domains in list(new_cid2trusted_domains.items()):
                                     new_cnt += len(trusted_domains)
                                 if new_cnt > old_cnt:
                                     found_new_trusted_domain = True
 
                             url2configs = dict()
-                            for priv, scripts in priv2scripts.items():
+                            for priv, scripts in list(priv2scripts.items()):
                                 world_id = str(priv)
                                 for script in scripts:
                                     config = dict() #{'world_id': -1, condition:}
@@ -977,7 +977,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
 
                             if rank not in rank2url2configs:
                                 rank2url2configs[rank] = dict()
-                            for url, configs in url2configs.items():
+                            for url, configs in list(url2configs.items()):
                                 if url not in rank2url2configs[rank]:
                                     rank2url2configs[rank][url] = list()
                                 for config in configs:
@@ -985,8 +985,8 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
 
 
                             if len(conflict_context2target2info) > 0:
-                                for context, target2infos in conflict_context2target2info.items():
-                                    for target, infos in target2infos.items():
+                                for context, target2infos in list(conflict_context2target2info.items()):
+                                    for target, infos in list(target2infos.items()):
                                         conflict_context2target2info[context][target] = list(infos)
                                 output_file = '%d.conflicts'%(int(rank))
                                 output_file = os.path.join(raw_input_dir, output_file)
@@ -1000,7 +1000,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                         try:
                             exc_type, exc_value, exc_traceback = sys.exc_info()
                             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                            print(''.join('!! ' + line for line in lines))
+                            print((''.join('!! ' + line for line in lines)))
                             sys.stdout.flush()
                         except Exception:
                             pass
@@ -1018,18 +1018,18 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                     print(string)
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                     lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                    print(''.join('!! ' + line for line in lines))
+                    print((''.join('!! ' + line for line in lines)))
                     sys.stdout.flush()
                 except Exception:
                     pass
 
         
-        for rank, url2configs in rank2url2configs.items():
+        for rank, url2configs in list(rank2url2configs.items()):
             output_file = str(rank) + '.configs'
             output_file = os.path.join(raw_input_dir, output_file)
             output_file = os.path.join(processed_data_dir, output_file)
             url2domain2ids = dict()
-            for url, configs in url2configs.items():
+            for url, configs in list(url2configs.items()):
                 for config in configs:
                     context_id = config['world_id']
                     script_url = config['match']
@@ -1048,15 +1048,15 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                         url2domain2ids[url][script_domain] = set()
                     url2domain2ids[url][script_domain].add(context_id)
             url2trusted_domains = dict()
-            for url, domain2ids in url2domain2ids.items():
+            for url, domain2ids in list(url2domain2ids.items()):
                 if url not in url2trusted_domains:
                     url2trusted_domains[url] = set()
-                for domain, ids in domain2ids.items():
+                for domain, ids in list(domain2ids.items()):
                     if '1' in ids:
                         url2trusted_domains[url].add(domain)
 
             corrected_url2configs = dict()
-            for url, configs in url2configs.items():
+            for url, configs in list(url2configs.items()):
                 if url not in corrected_url2configs:
                     corrected_url2configs[url] = list()
 
@@ -1091,7 +1091,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
             output_file = os.path.join(raw_input_dir, output_file)
             output_file = os.path.join(processed_data_dir, output_file)
             simple_url2configs = dict()
-            for url, configs in corrected_url2configs.items():
+            for url, configs in list(corrected_url2configs.items()):
                 if url not in simple_url2configs:
                     simple_url2configs[url] = dict()
                 for config in configs:
@@ -1129,7 +1129,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
             print(string)
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            print(''.join('!! ' + line for line in lines))
+            print((''.join('!! ' + line for line in lines)))
             sys.stdout.flush()
         except Exception:
             pass
@@ -1335,8 +1335,8 @@ def main(argv):
         if not isinstance(e, KeyboardInterrupt):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            print(type(e), "PARENT")
-            print(''.join('!! ' + line for line in lines))
+            print((type(e), "PARENT"))
+            print((''.join('!! ' + line for line in lines)))
             status = ''.join('!! ' + line for line in lines)
             string = '%s\t%s\n' % (current_time, status)
             log_f.write(string)
@@ -1375,21 +1375,21 @@ def main(argv):
 def usage():
     tab = '\t'
     print('Usage:')
-    print(tab + 'python %s [OPTIONS]' % (__file__))
-    print(tab + '-d | --exp_dir=')
-    print(tab*2 + 'Exp directory')
-    print(tab + '-u | --user_dir=')
-    print(tab*2 + 'User directory of Chrome')
-    print(tab + '-n | --num=')
-    print(tab*2 + 'Number of task splits, default is 512')
-    print(tab + '-p | --process=')
-    print(tab*2 + 'Maximum number of processes, default is 8')
-    print(tab + '-s | --start')
-    print(tab*2 + 'Start index, default 0')
-    print(tab + '-e | --end')
-    print(tab*2 + 'End index, default number of URLs')
-    print(tab + '-t | --type=')
-    print(tab*2 + 'Input type, [url2index|info2index2script] default "url2index"')
+    print((tab + 'python %s [OPTIONS]' % (__file__)))
+    print((tab + '-d | --exp_dir='))
+    print((tab*2 + 'Exp directory'))
+    print((tab + '-u | --user_dir='))
+    print((tab*2 + 'User directory of Chrome'))
+    print((tab + '-n | --num='))
+    print((tab*2 + 'Number of task splits, default is 512'))
+    print((tab + '-p | --process='))
+    print((tab*2 + 'Maximum number of processes, default is 8'))
+    print((tab + '-s | --start'))
+    print((tab*2 + 'Start index, default 0'))
+    print((tab + '-e | --end'))
+    print((tab*2 + 'End index, default number of URLs'))
+    print((tab + '-t | --type='))
+    print((tab*2 + 'Input type, [url2index|info2index2script] default "url2index"'))
 
 if __name__ == '__main__':
     main(sys.argv[1:])

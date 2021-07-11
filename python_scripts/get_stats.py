@@ -1,5 +1,5 @@
 import json, os, sys, traceback, getopt, tldextract
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 def determine_script_privilege(url, first_party_domain):
     global extract
@@ -40,7 +40,7 @@ def measure(user_dir, task_id, start, end):
         input_file = os.path.join(input_dir, f)
         with open(input_file, 'r') as input_f:
             url2configs = json.loads(input_f.read())
-        for url, configs in url2configs.items():
+        for url, configs in list(url2configs.items()):
             try:
                 ta, tb, tc = extract(url)
                 first_party_domain = tb + '.' + tc
@@ -48,7 +48,7 @@ def measure(user_dir, task_id, start, end):
                 first_party_domain = url
 
             for config in configs:
-                config_info = [info for key, info in config.items()]
+                config_info = [info for key, info in list(config.items())]
                 config_info.append(url)
                 rank2type2info[rank]['cnt'] += 1 # count the number of static scripts
                 if 'alter_match' in config:
@@ -85,14 +85,14 @@ def measure(user_dir, task_id, start, end):
         with open(input_file, 'r') as input_f:
             url2configs = json.loads(input_f.read())
         cnt = 0
-        for url, configs in url2configs.items():
+        for url, configs in list(url2configs.items()):
             cnt += len(configs)
             for config in configs:
 
                 if config['world_id'] == '3':
                     continue
 
-                for s, infos in config['read'].items():
+                for s, infos in list(config['read'].items()):
                     if rank not in rank2script2cnt:
                         rank2script2cnt[rank] = dict()
                     if config['script_id'] not in rank2script2cnt[rank]:
@@ -100,7 +100,7 @@ def measure(user_dir, task_id, start, end):
                     
                     rank2script2cnt[rank][config['script_id']] += len(infos)
 
-                for s, infos in config['read by'].items():
+                for s, infos in list(config['read by'].items()):
                     if rank not in rank2script2cnt:
                         rank2script2cnt[rank] = dict()
                     if config['script_id'] not in rank2script2cnt[rank]:
@@ -220,7 +220,7 @@ def main(argv):
     to3p_rank2info = dict()
     to1p_rank2info = dict()
 
-    for rank, type2info in rank2type2info.items():
+    for rank, type2info in list(rank2type2info.items()):
         #if int(rank) not in list_ranks:
         #    continue
         if int(rank) > end:
@@ -269,16 +269,16 @@ def main(argv):
 
     print('\n\n')
     #print('Static inline\t#scripts: %d\t#websites: %d'%(static_inline_cnt, len(static_inline_ranks))) cannot be policies for them
-    print('Static external\t#scripts: %d\t#websites: %d'%(static_external_cnt, len(static_external_ranks)))
-    print('Static external 3p\t#scripts: %d\t#websites: %d'%(static_external_3p_cnt, len(static_external_3p_ranks)))
+    print(('Static external\t#scripts: %d\t#websites: %d'%(static_external_cnt, len(static_external_ranks))))
+    print(('Static external 3p\t#scripts: %d\t#websites: %d'%(static_external_3p_cnt, len(static_external_3p_ranks))))
 
-    print('Context is 3p\t#scripts: %d\t#websites: %d'%(three_world_cnt, len(three_world_ranks)))
+    print(('Context is 3p\t#scripts: %d\t#websites: %d'%(three_world_cnt, len(three_world_ranks))))
     print(three_world_ranks)
 
-    print('Static from 3p domain but context is 1p\t#scripts: %d\t#websites: %d'%(to1p_cnt, len(to1p_ranks))) 
-    print('Static from 1p domain but context is 3p\t#scripts: %d\t#websites: %d'%(to3p_cnt, len(to3p_ranks))) 
+    print(('Static from 3p domain but context is 1p\t#scripts: %d\t#websites: %d'%(to1p_cnt, len(to1p_ranks)))) 
+    print(('Static from 1p domain but context is 3p\t#scripts: %d\t#websites: %d'%(to3p_cnt, len(to3p_ranks)))) 
 
-    print('Static and context is both\t#scripts: %d\t#websites: %d'%(both_cnt, len(both_ranks))) 
+    print(('Static and context is both\t#scripts: %d\t#websites: %d'%(both_cnt, len(both_ranks)))) 
     print(both_ranks)
 
     
@@ -286,7 +286,7 @@ def main(argv):
     total_cnt = 0
     total_script_cnt = 0
     total_ranks = set()
-    for rank, script2cnt in rank2script2cnt.items():
+    for rank, script2cnt in list(rank2script2cnt.items()):
         #if int(rank) not in list_ranks:
         #    continue
         if int(rank) > end:
@@ -294,35 +294,35 @@ def main(argv):
         if int(rank) < start:
             continue
         total_ranks.add(rank)
-        for script, cnt in script2cnt.items():
+        for script, cnt in list(script2cnt.items()):
             total_script_cnt += 1
             total_cnt += cnt
-    print('#Ranks: %d'%(len(total_ranks)))
-    print('#Script: %d'%(total_script_cnt))
-    print('#Accesses: %d'%(total_cnt))
+    print(('#Ranks: %d'%(len(total_ranks))))
+    print(('#Script: %d'%(total_script_cnt)))
+    print(('#Accesses: %d'%(total_cnt)))
 
 
 
 def usage():
     tab = '\t'
     print('Usage:')
-    print(tab + 'python %s [OPTIONS]' % (__file__))
-    print(tab + '-d | --exp_dir=')
-    print(tab*2 + 'Exp directory')
-    print(tab + '-u | --user_dir=')
-    print(tab*2 + 'User directory of Chrome')
-    print(tab + '-n | --num=')
-    print(tab*2 + 'Number of task splits, default is 512')
-    print(tab + '-p | --process=')
-    print(tab*2 + 'Maximum number of processes, default is 8')
-    print(tab + '-s | --start')
-    print(tab*2 + 'Start index, default 0')
-    print(tab + '-e | --end')
-    print(tab*2 + 'End index, default number of URLs')
-    print(tab + '-t | --type=')
-    print(tab*2 + 'Input type, [url2index|info2index2script] default "url2index"')
-    print(tab + '-o | --output_dir')
-    print(tab*2 + 'Output directory')
+    print((tab + 'python %s [OPTIONS]' % (__file__)))
+    print((tab + '-d | --exp_dir='))
+    print((tab*2 + 'Exp directory'))
+    print((tab + '-u | --user_dir='))
+    print((tab*2 + 'User directory of Chrome'))
+    print((tab + '-n | --num='))
+    print((tab*2 + 'Number of task splits, default is 512'))
+    print((tab + '-p | --process='))
+    print((tab*2 + 'Maximum number of processes, default is 8'))
+    print((tab + '-s | --start'))
+    print((tab*2 + 'Start index, default 0'))
+    print((tab + '-e | --end'))
+    print((tab*2 + 'End index, default number of URLs'))
+    print((tab + '-t | --type='))
+    print((tab*2 + 'Input type, [url2index|info2index2script] default "url2index"'))
+    print((tab + '-o | --output_dir'))
+    print((tab*2 + 'Output directory'))
 
 
 

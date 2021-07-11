@@ -3,7 +3,7 @@ import signal, psutil, tldextract
 from multiprocessing import Process as Task, Queue
 from subprocess import call, PIPE, STDOUT
 import multiprocessing as mp
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 
 
@@ -121,7 +121,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
         if not os.path.isdir(raw_output_dir):
             os.mkdir(raw_output_dir)
 
-        for rank, exception_files in rank2exception_files.items():
+        for rank, exception_files in list(rank2exception_files.items()):
             if rank > end:
                 continue
             if rank % num_instances != task_id or rank in processed_list or rank < start:
@@ -137,7 +137,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                     if 'INFO:CONSOLE' in line and 'Uncaught ' in line:
                                         type2exceptions['normal'].append(line.split('INFO:CONSOLE')[1])
                         except Exception as e:
-                            print(e, 'fail to open clean exception logs')
+                            print((e, 'fail to open clean exception logs'))
                             continue
                         
                         proxy_dir = input_dir + '_proxy'
@@ -148,7 +148,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                     if 'INFO:CONSOLE' in line and 'Uncaught ' in line:
                                         type2exceptions['proxy'].append(line.split('INFO:CONSOLE')[1])
                         except Exception as e:
-                            print(e, 'fail to open isolate exception logs')
+                            print((e, 'fail to open isolate exception logs'))
                             continue
 
                         output_file = str(rank) + '-exceptions.json'
@@ -163,7 +163,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                                 break
                         if more_exceptions:
                             print(task)
-                            print('vanilla #exceptions: %d\tJSIsolate #exceptions: %d\n\n'%(len(type2exceptions['normal']), len(type2exceptions['proxy'])))
+                            print(('vanilla #exceptions: %d\tJSIsolate #exceptions: %d\n\n'%(len(type2exceptions['normal']), len(type2exceptions['proxy']))))
                             print(output_file)
                         else:
                             #print('GOOD! clean: %d\tisolate: %d\n\n'%(len(type2exceptions['normal']), len(type2exceptions['proxy'])))
@@ -175,7 +175,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                         try:
                             exc_type, exc_value, exc_traceback = sys.exc_info()
                             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                            print(''.join('!! ' + line for line in lines))
+                            print((''.join('!! ' + line for line in lines)))
                             sys.stdout.flush()
                         except Exception:
                             pass
@@ -193,7 +193,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                     print(string)
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                     lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                    print(''.join('!! ' + line for line in lines))
+                    print((''.join('!! ' + line for line in lines)))
                     sys.stdout.flush()
                 except Exception:
                     pass
@@ -207,7 +207,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
             print(string)
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            print(''.join('!! ' + line for line in lines))
+            print((''.join('!! ' + line for line in lines)))
             sys.stdout.flush()
         except Exception:
             pass
@@ -411,8 +411,8 @@ def main(argv):
         if not isinstance(e, KeyboardInterrupt):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            print(type(e), "PARENT")
-            print(''.join('!! ' + line for line in lines))
+            print((type(e), "PARENT"))
+            print((''.join('!! ' + line for line in lines)))
             status = ''.join('!! ' + line for line in lines)
             string = '%s\t%s\n' % (current_time, status)
             log_f.write(string)
@@ -451,21 +451,21 @@ def main(argv):
 def usage():
     tab = '\t'
     print('Usage:')
-    print(tab + 'python %s [OPTIONS]' % (__file__))
-    print(tab + '-d | --exp_dir=')
-    print(tab*2 + 'Exp directory')
-    print(tab + '-u | --user_dir=')
-    print(tab*2 + 'User directory of Chrome')
-    print(tab + '-n | --num=')
-    print(tab*2 + 'Number of task splits, default is 512')
-    print(tab + '-p | --process=')
-    print(tab*2 + 'Maximum number of processes, default is 8')
-    print(tab + '-s | --start')
-    print(tab*2 + 'Start index, default 0')
-    print(tab + '-e | --end')
-    print(tab*2 + 'End index, default number of URLs')
-    print(tab + '-t | --type=')
-    print(tab*2 + 'Input type, [url2index|info2index2script] default "url2index"')
+    print((tab + 'python %s [OPTIONS]' % (__file__)))
+    print((tab + '-d | --exp_dir='))
+    print((tab*2 + 'Exp directory'))
+    print((tab + '-u | --user_dir='))
+    print((tab*2 + 'User directory of Chrome'))
+    print((tab + '-n | --num='))
+    print((tab*2 + 'Number of task splits, default is 512'))
+    print((tab + '-p | --process='))
+    print((tab*2 + 'Maximum number of processes, default is 8'))
+    print((tab + '-s | --start'))
+    print((tab*2 + 'Start index, default 0'))
+    print((tab + '-e | --end'))
+    print((tab*2 + 'End index, default number of URLs'))
+    print((tab + '-t | --type='))
+    print((tab*2 + 'Input type, [url2index|info2index2script] default "url2index"'))
 
 if __name__ == '__main__':
     main(sys.argv[1:])

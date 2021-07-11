@@ -5,7 +5,7 @@
 # <input_file>: a file containing the domain name of websites, each line in format: <rank,domain_name>
 # REMEMBER TO PUT THIS FILE UNDER THE SAME FOLDER WITH A profile-template FOLDER !!
 
-import random, time, os, shutil, re, codecs, sys, json, traceback, getopt, httplib, subprocess, tldextract
+import random, time, os, shutil, re, codecs, sys, json, traceback, getopt, http.client, subprocess, tldextract
 import signal, psutil
 import numpy as np
 from selenium.webdriver.common.by import By
@@ -18,7 +18,7 @@ from selenium.webdriver.common.keys import Keys
 from multiprocessing import Process as Task, Queue, Lock
 import multiprocessing as mp
 from subprocess import call, PIPE, STDOUT
-from urlparse import urlparse
+from urllib.parse import urlparse
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -208,11 +208,11 @@ def create_browser(proxy_port, log_pass, window_size="1024,768", binary_path=Non
         else:
             browser = webdriver.Chrome(chrome_options=options, desired_capabilities=caps) 
     except WebDriverException as e:
-        print('Failed to create browser for PID [%d]!!!' % (os.getpid()))
+        print(('Failed to create browser for PID [%d]!!!' % (os.getpid())))
         try:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            print(''.join('!! ' + line for line in lines))
+            print((''.join('!! ' + line for line in lines)))
             sys.stdout.flush()
         except Exception:
             pass
@@ -652,7 +652,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
             suffix = split_list[1]
         if suffix in valid_suffixs:
             rank2files[rank].append(suffix)
-    completed_list = [rank for rank, suffix_list in rank2files.items() if len(suffix_list) >= 4]
+    completed_list = [rank for rank, suffix_list in list(rank2files.items()) if len(suffix_list) >= 4]
 
     del rank2files
 
@@ -679,7 +679,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                 if rank % num_instances != task_id or rank in processed_list or rank < start:
                     continue
                     if rank in processed_list:
-                        print('finished', rank)
+                        print(('finished', rank))
                 
                 if rank in rank2fail_num and rank2fail_num[rank] >= 1:
                     continue
@@ -935,7 +935,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                 time_log_file = os.path.join(output_dir, time_log_file)
                 with open(time_log_file, 'w') as output_f:
                     output_f.write(str(page_load_time))
-                print(time_log_file, page_load_time)
+                print((time_log_file, page_load_time))
                
                 
                 
@@ -952,7 +952,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                 mem_log_file = os.path.join(output_dir, mem_log_file)
                 with open(mem_log_file, 'w') as output_f:
                     output_f.write(str(memory_consumption))
-                print(mem_log_file, memory_consumption)
+                print((mem_log_file, memory_consumption))
 
 
                 gone, alive = kill_child_processes(parent_pid = current_pid)
@@ -1014,7 +1014,7 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
                 print(rank)
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                print(''.join('!! ' + line for line in lines))
+                print((''.join('!! ' + line for line in lines)))
                 sys.stdout.flush()
             except Exception:
                 pass
@@ -1025,14 +1025,14 @@ def measure(user_dir, task_id, length, start, end, status_queue, process_index):
             status = 'process %-4d task %s/%s raised an Exception %s when visiting [%d].' % (process_index, task_id+1, length, type(e), rank)
             status_queue.put([process_index, status])
             string = '%s\t%s' % (getlocaltime(), status)
-            if not isinstance(e, WebDriverException) and not isinstance(e, TimeoutException) and not isinstance(e, httplib.CannotSendRequest) and not isinstance(e, FunctionTimeoutException) and not isinstance(e, NavigationStuckException) and not isinstance(e, httplib.BadStatusLine):
+            if not isinstance(e, WebDriverException) and not isinstance(e, TimeoutException) and not isinstance(e, http.client.CannotSendRequest) and not isinstance(e, FunctionTimeoutException) and not isinstance(e, NavigationStuckException) and not isinstance(e, http.client.BadStatusLine):
             #if not isinstance(e, TimeoutException) and not isinstance(e, httplib.CannotSendRequest) and not isinstance(e, FunctionTimeoutException) and not isinstance(e, NavigationStuckException) and not isinstance(e, httplib.BadStatusLine):
                 try:
                     print(string)
                     print(rank)
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                     lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                    print(''.join('!! ' + line for line in lines))
+                    print((''.join('!! ' + line for line in lines)))
                     sys.stdout.flush()
                 except Exception:
                     pass
@@ -1394,8 +1394,8 @@ def main(argv):
         if not isinstance(e, KeyboardInterrupt) and not isinstance(e, TooManyTasksDead):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            print(type(e), "PARENT")
-            print(''.join('!! ' + line for line in lines))
+            print((type(e), "PARENT"))
+            print((''.join('!! ' + line for line in lines)))
             status = ''.join('!! ' + line for line in lines)
             string = '%s\t%s\n' % (current_time, status)
             log_f.write(string)
@@ -1438,29 +1438,29 @@ def main(argv):
 def usage():
     tab = '\t'
     print('Usage:')
-    print(tab + 'python %s [OPTIONS]' % (__file__))
-    print(tab + '-d | --log_dir=')
-    print(tab*2 + 'Log directory')
-    print(tab + '-u | --user_dir=')
-    print(tab*2 + 'User directory of Chrome')
-    print(tab + '-i | --input_file=')
-    print(tab*2 + 'Input file that contains URLs and ranks')
-    print(tab + '-n | --num=')
-    print(tab*2 + 'Number of task splits, default is 512')
-    print(tab + '-p | --process=')
-    print(tab*2 + 'Maximum number of processes, default is 8')
-    print(tab + '-t | --type')
-    print(tab*2 + 'Input type, [domain|url], default [domain]')
-    print(tab + '-s | --start')
-    print(tab*2 + 'Start index, default 0')
-    print(tab + '-e | --end')
-    print(tab*2 + 'End index, default number of URLs')
-    print(tab + '-c | --config_dir')
-    print(tab*2 + 'Directory of isolation policies')
-    print(tab + '-l | --log_pass')
-    print(tab*2 + 'Fallback context, use 1 for first-party context, 3 for third-party and 0 for clean browser')
-    print(tab + '-m | --policy_mode')
-    print(tab*2 + 'Isolation policy mode, use 1 for domain-level policies and 0 for URL-level policies')
+    print((tab + 'python %s [OPTIONS]' % (__file__)))
+    print((tab + '-d | --log_dir='))
+    print((tab*2 + 'Log directory'))
+    print((tab + '-u | --user_dir='))
+    print((tab*2 + 'User directory of Chrome'))
+    print((tab + '-i | --input_file='))
+    print((tab*2 + 'Input file that contains URLs and ranks'))
+    print((tab + '-n | --num='))
+    print((tab*2 + 'Number of task splits, default is 512'))
+    print((tab + '-p | --process='))
+    print((tab*2 + 'Maximum number of processes, default is 8'))
+    print((tab + '-t | --type'))
+    print((tab*2 + 'Input type, [domain|url], default [domain]'))
+    print((tab + '-s | --start'))
+    print((tab*2 + 'Start index, default 0'))
+    print((tab + '-e | --end'))
+    print((tab*2 + 'End index, default number of URLs'))
+    print((tab + '-c | --config_dir'))
+    print((tab*2 + 'Directory of isolation policies'))
+    print((tab + '-l | --log_pass'))
+    print((tab*2 + 'Fallback context, use 1 for first-party context, 3 for third-party and 0 for clean browser'))
+    print((tab + '-m | --policy_mode'))
+    print((tab*2 + 'Isolation policy mode, use 1 for domain-level policies and 0 for URL-level policies'))
 
 
 

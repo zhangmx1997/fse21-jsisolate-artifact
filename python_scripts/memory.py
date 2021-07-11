@@ -17,7 +17,7 @@ def get_RSS(pid):
     return mem
 
 def get_pids_by_name(name):
-    return map(int,subprocess.check_output(["pidof",name]).split())
+    return list(map(int,subprocess.check_output(["pidof",name]).split()))
     
 def get_mem_by_name(name):
     pids = get_pids_by_name(name)
@@ -36,4 +36,4 @@ if __name__ == "__main__":
     else:
         pids = list()
         pids.append(int(sys.argv[1]))
-        print get_mem_by_pids(pids)
+        print(get_mem_by_pids(pids))

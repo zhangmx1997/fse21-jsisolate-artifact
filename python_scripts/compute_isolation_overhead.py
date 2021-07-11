@@ -70,7 +70,7 @@ def measure(user_dir, task_id, start, end):
                 iso_valid_mem_ranks.add(rank)
                 type2rank2mem['isolate'][rank] = mem
             else:
-                print('isolate', rank)
+                print(('isolate', rank))
 
 
 def main(argv):
@@ -160,27 +160,27 @@ def main(argv):
     clean_mems = list()
     isolate_mems = list()
     type2rank2overhead = {'time': dict(), 'memory': dict()}
-    clean_time_ranks = type2rank2time['clean'].keys()
-    isolate_time_ranks = type2rank2time['isolate'].keys()
+    clean_time_ranks = list(type2rank2time['clean'].keys())
+    isolate_time_ranks = list(type2rank2time['isolate'].keys())
 
-    for type_, rank2time in type2rank2time.items():
-        for rank, time in rank2time.items():
+    for type_, rank2time in list(type2rank2time.items()):
+        for rank, time in list(rank2time.items()):
             if rank not in clean_time_ranks or rank not in isolate_time_ranks:
                 continue
             if type_ == 'clean':
-                for key, value in time.items():
+                for key, value in list(time.items()):
                     clean_times[key].append(value)
             else:
-                for key, value in time.items():
+                for key, value in list(time.items()):
                     isolate_times[key].append(value)
 
  
-    clean_mem_ranks = type2rank2mem['clean'].keys()
-    isolate_mem_ranks = type2rank2mem['isolate'].keys()
+    clean_mem_ranks = list(type2rank2mem['clean'].keys())
+    isolate_mem_ranks = list(type2rank2mem['isolate'].keys())
     mem_ranks = set()
 
-    for type_, rank2mem in type2rank2mem.items():
-        for rank, mem in rank2mem.items():
+    for type_, rank2mem in list(type2rank2mem.items()):
+        for rank, mem in list(rank2mem.items()):
             if rank not in clean_mem_ranks or rank not in isolate_mem_ranks:
                 continue
 
@@ -213,14 +213,14 @@ def main(argv):
         output_f.write(json.dumps(type2rank2overhead))
 
     print('\n\n\nAverage page loading time')
-    for key in clean_times.keys():
+    for key in list(clean_times.keys()):
         cur_clean_times = clean_times[key]
         cur_isolate_times = isolate_times[key]
         if key not in ['navi-dom']: # the page loading time shall be measured from navigationStart to domComplete
             continue
-        print('\t%s'%(key))
+        print(('\t%s'%(key)))
         #print(len(cur_clean_times), len(cur_isolate_times))
-        print('#Websites: %d'%(len(cur_clean_times))) #, len(cur_isolate_times))
+        print(('#Websites: %d'%(len(cur_clean_times)))) #, len(cur_isolate_times))
         cur_clean_times_ = cur_clean_times
         cur_isolate_times_ = cur_isolate_times
 
@@ -229,9 +229,9 @@ def main(argv):
         overhead_mean_time = isolate_mean_time / (clean_mean_time * 1.0)
         overhead_times = [cur_isolate_times_[i]/(cur_clean_times_[i]*1.0) for i in range(0, len(cur_clean_times_))]
 
-        print('\tclean: %.3f\tisolate: %.3f\toverhead: %.3f'%(clean_mean_time, isolate_mean_time, overhead_mean_time))
-        print('\tmax overhead: %.3f'%(max(overhead_times)))
-        print('\tmin overhead: %.3f'%(min(overhead_times)))
+        print(('\tclean: %.3f\tisolate: %.3f\toverhead: %.3f'%(clean_mean_time, isolate_mean_time, overhead_mean_time)))
+        print(('\tmax overhead: %.3f'%(max(overhead_times))))
+        print(('\tmin overhead: %.3f'%(min(overhead_times))))
         overhead_len = len(overhead_times)
         overhead_times = sorted(overhead_times)
         if overhead_len%2 == 0:
@@ -240,7 +240,7 @@ def main(argv):
         else:
             target_index = overhead_len/2
             median = overhead_times[target_index]
-        print('\tmedian overhead: %.3f'%(median))
+        print(('\tmedian overhead: %.3f'%(median)))
         print('\n')
 
 
@@ -251,10 +251,10 @@ def main(argv):
 
     print('\nAverage memory consumption')
     #print(len(clean_mems), len(isolate_mems))
-    print('#Websites: %d'%(len(clean_mems))) #, len(cur_isolate_times))
-    print('\tclean: %.3f\tisolate: %.3f\toverhead: %.3f'%(clean_mean_mem, isolate_mean_mem, overhead_mean_mem))
-    print('\tmax overhead: %.3f'%(max(overhead_mems)))
-    print('\tmin overhead: %.3f'%(min(overhead_mems)))
+    print(('#Websites: %d'%(len(clean_mems)))) #, len(cur_isolate_times))
+    print(('\tclean: %.3f\tisolate: %.3f\toverhead: %.3f'%(clean_mean_mem, isolate_mean_mem, overhead_mean_mem)))
+    print(('\tmax overhead: %.3f'%(max(overhead_mems))))
+    print(('\tmin overhead: %.3f'%(min(overhead_mems))))
     overhead_len = len(overhead_mems)
     overhead_mems = sorted(overhead_mems)
     if overhead_len%2 == 0:
@@ -263,7 +263,7 @@ def main(argv):
     else:
         target_index = overhead_len/2
         median = overhead_mems[target_index]
-    print('\tmedian overhead: %.3f'%(median))
+    print(('\tmedian overhead: %.3f'%(median)))
     print('\n')
 
 
@@ -272,23 +272,23 @@ def main(argv):
 def usage():
     tab = '\t'
     print('Usage:')
-    print(tab + 'python %s [OPTIONS]' % (__file__))
-    print(tab + '-d | --exp_dir=')
-    print(tab*2 + 'Exp directory')
-    print(tab + '-u | --user_dir=')
-    print(tab*2 + 'User directory of Chrome')
-    print(tab + '-n | --num=')
-    print(tab*2 + 'Number of task splits, default is 512')
-    print(tab + '-p | --process=')
-    print(tab*2 + 'Maximum number of processes, default is 8')
-    print(tab + '-s | --start')
-    print(tab*2 + 'Start index, default 0')
-    print(tab + '-e | --end')
-    print(tab*2 + 'End index, default number of URLs')
-    print(tab + '-t | --type=')
-    print(tab*2 + 'Input type, [url2index|info2index2script] default "url2index"')
-    print(tab + '-o | --output_dir=')
-    print(tab*2 + 'Output directory')
+    print((tab + 'python %s [OPTIONS]' % (__file__)))
+    print((tab + '-d | --exp_dir='))
+    print((tab*2 + 'Exp directory'))
+    print((tab + '-u | --user_dir='))
+    print((tab*2 + 'User directory of Chrome'))
+    print((tab + '-n | --num='))
+    print((tab*2 + 'Number of task splits, default is 512'))
+    print((tab + '-p | --process='))
+    print((tab*2 + 'Maximum number of processes, default is 8'))
+    print((tab + '-s | --start'))
+    print((tab*2 + 'Start index, default 0'))
+    print((tab + '-e | --end'))
+    print((tab*2 + 'End index, default number of URLs'))
+    print((tab + '-t | --type='))
+    print((tab*2 + 'Input type, [url2index|info2index2script] default "url2index"'))
+    print((tab + '-o | --output_dir='))
+    print((tab*2 + 'Output directory'))
 
 
 
