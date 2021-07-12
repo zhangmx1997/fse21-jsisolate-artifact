@@ -101,9 +101,9 @@ We have released the object access logs and the script isolation policies genera
 
 We provide our data collection script in the *python_scripts* folder.
 
-You may change line 751 and 761 to adjust the timeout, e.g., if some website cannot finish loading within the timeout after multiple tries, enlarge the timeout to 360 and 320 in line 751 and 761, respectively.
+You may change line 752 and 762 to adjust the timeout, e.g., if some website cannot finish loading within the timeout after multiple tries, enlarge the timeout to 360 and 320 in line 752 and 762, respectively.
 
-You may comment line 851~853 (the monkey testing code) for computing log collection overhead.
+You may comment line 852~854 (the monkey testing code) for computing log collection overhead.
 
 ```shell
 cd python_scripts
@@ -301,7 +301,7 @@ The above command will execute the following python scripts for reproducing our 
 
 * collect.py: collect object access logs for generating isolation policies
 
-  If some websites cannot finish loading within the timeout after multiple tries, you may enlarge the timeout to, e.g., 360 and 320 in line 751 and 761, respectively. In large-scale scripts, however, we recommend to use a small timeout to save some time.
+  If some websites cannot finish loading within the timeout after multiple tries, you may enlarge the timeout to, e.g., 360 and 320 in line 752 and 762, respectively. In large-scale scripts, however, we recommend to use a small timeout to save some time.
 
 * url_level_analyze_dependency.py: generate URL-level isolation policies
 
@@ -311,7 +311,7 @@ The above command will execute the following python scripts for reproducing our 
 
 * isolation_and_record_performance.py: launch JSIsolate in the policy enforcement mode and log the performance data
 
-  If some websites cannot finish loading within the timeout after multiple tries, you may enlarge the timeout to, e.g., 360 and 320 in line 798 and 809, respectively. In large-scale scripts, however, we recommend to use a small timeout to save some time.
+  If some websites cannot finish loading within the timeout after multiple tries, you may enlarge the timeout to, e.g., 360 and 320 in line 800 and 811, respectively. In large-scale scripts, however, we recommend to use a small timeout to save some time.
 
 * compare_exception_nums.py: compare the JS exception numbers to evaluate the compatibility
 
