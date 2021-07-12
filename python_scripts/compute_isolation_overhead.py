@@ -41,9 +41,12 @@ def measure(user_dir, task_id, start, end):
     clean_valid_mem_ranks = set()
     for f in mem_files: 
         input_file = os.path.join(input_dir, f)
-        with open(input_file, 'r') as input_f:
+        with open(input_file, 'rb') as input_f:
             for line in input_f:
-                mem = int(line.split('\n')[0])
+                line = str(line, 'utf-8')
+                if line != '-1':
+                    line = line[2:-1]
+                mem = int(line.split('\\n')[0])
                 break
             rank = int(f.split('.')[0])
             if rank < start or rank > end: 
@@ -51,15 +54,16 @@ def measure(user_dir, task_id, start, end):
             if mem != -1:
                 clean_valid_mem_ranks.add(rank)
                 type2rank2mem['clean'][rank] = mem
-            else:
-                print(rank)
 
     iso_valid_mem_ranks = set()
     for f in iso_mem_files:
         input_file = os.path.join(input_dir, f)
-        with open(input_file, 'r') as input_f:
+        with open(input_file, 'rb') as input_f:
             for line in input_f:
-                mem = int(line.split('\n')[0])
+                line = str(line, 'utf-8')
+                if line != '-1':
+                    line = line[2:-1]
+                mem = int(line.split('\\n')[0])
                 break
             rank = int(f.split('.')[0])
             if rank < start or rank > end: 
@@ -69,8 +73,6 @@ def measure(user_dir, task_id, start, end):
             if mem != -1:
                 iso_valid_mem_ranks.add(rank)
                 type2rank2mem['isolate'][rank] = mem
-            else:
-                print(('isolate', rank))
 
 
 def main(argv):
@@ -235,10 +237,10 @@ def main(argv):
         overhead_len = len(overhead_times)
         overhead_times = sorted(overhead_times)
         if overhead_len%2 == 0:
-            target_index = overhead_len/2-1
+            target_index = overhead_len//2-1
             median = (overhead_times[target_index] + overhead_times[target_index+1]) / 2.0
         else:
-            target_index = overhead_len/2
+            target_index = overhead_len//2
             median = overhead_times[target_index]
         print(('\tmedian overhead: %.3f'%(median)))
         print('\n')
@@ -258,10 +260,10 @@ def main(argv):
     overhead_len = len(overhead_mems)
     overhead_mems = sorted(overhead_mems)
     if overhead_len%2 == 0:
-        target_index = overhead_len/2-1
+        target_index = overhead_len//2-1
         median = (overhead_mems[target_index] + overhead_mems[target_index+1]) / 2.0
     else:
-        target_index = overhead_len/2
+        target_index = overhead_len//2
         median = overhead_mems[target_index]
     print(('\tmedian overhead: %.3f'%(median)))
     print('\n')

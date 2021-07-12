@@ -5,7 +5,7 @@
 # <input_file>: a file containing the domain name of websites, each line in format: <rank,domain_name>
 # REMEMBER TO PUT THIS FILE UNDER THE SAME FOLDER WITH A profile-template FOLDER !!
 
-import random, time, os, shutil, re, codecs, sys, json, traceback, getopt, http.client, subprocess, tldextract
+import random, time, os, shutil, re, codecs, sys, json, traceback, getopt, http.client, subprocess, tldextract, importlib
 import signal, psutil
 import numpy as np
 from selenium.webdriver.common.by import By
@@ -26,14 +26,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 # This script do not need to destroy browser process between navigations
 # This script can not capture browser event traces
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
+importlib.reload(sys)
 up = r'../'
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
 PROFILE_TEMPLATE_DIR = os.path.join(ROOT, 'profile-template')
 DATA_COLLECTION_CHROME = os.path.join(ROOT, "../binaries/dump/chrome") # change this to your local path of the data collection browser
 CLEAN_CHROME = os.path.join(ROOT, "../binaries/clean/chrome") # or change this to your local path of the clean browser
+#DATA_COLLECTION_CHROME = os.path.join(ROOT, "../chromium/src/out/dump/chrome") # use this when build from source code
+#CLEAN_CHROME = os.path.join(ROOT, "../chromium/src/out/clean/chrome") # use this when build from source code
 
 class FunctionTimeoutException(Exception):
     pass

@@ -12,39 +12,39 @@ NUM_INSTANCES=128  # Number of task splits, we used 128 in our large-scale exper
 # collect_logs.py can be executed for multiple times in case some websites cannot finish loading within the timeout
 # If some websites cannot finish loading within timeout after multiple tries, consider enlarging the timeout to 360s 
 date
-echo python collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
-time python collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+echo python3.5 collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+time python3.5 collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
 
 # Uncomment the following 7 lines if you want to compute the data collection overhead
 #date
-#echo python collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1
-#time python collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1
+#echo python3.5 collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1
+#time python3.5 collect_logs.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1
 #
 #date
-#echo python compute_collection_overhead.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -o $LOG_DIR -n $NUM_INSTANCES
-#time python compute_collection_overhead.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -o $LOG_DIR -n $NUM_INSTANCES
+#echo python3.5 compute_collection_overhead.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -o $LOG_DIR -n $NUM_INSTANCES
+#time python3.5 compute_collection_overhead.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -o $LOG_DIR -n $NUM_INSTANCES
 
 
 
 date
-echo python url_level_analyze_dependency.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
-time python url_level_analyze_dependency.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
+echo python3.5 url_level_analyze_dependency.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
+time python3.5 url_level_analyze_dependency.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
 
 date
-echo python domain_level_analyze_dependency.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
-time python domain_level_analyze_dependency.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
+echo python3.5 domain_level_analyze_dependency.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
+time python3.5 domain_level_analyze_dependency.py -u $USER_DIR -d $LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
 
 
 CONFIGS_DIR="$LOG_DIR/domain-level-policies"
 date 
-echo python get_stats.py -u $USER_DIR -d $CONFIGS_DIR -s $START -e $END -n $NUM_INSTANCES -o $CONFIGS_DIR
-time python get_stats.py -u $USER_DIR -d $CONFIGS_DIR -s $START -e $END -n $NUM_INSTANCES -o $CONFIGS_DIR
+echo python3.5 get_stats.py -u $USER_DIR -d $CONFIGS_DIR -s $START -e $END -n $NUM_INSTANCES -o $CONFIGS_DIR
+time python3.5 get_stats.py -u $USER_DIR -d $CONFIGS_DIR -s $START -e $END -n $NUM_INSTANCES -o $CONFIGS_DIR
 
 
 CONFIGS_DIR="$LOG_DIR/url-level-policies"
 date 
-echo python get_stats.py -u $USER_DIR -d $CONFIGS_DIR -s $START -e $END -n $NUM_INSTANCES -o $CONFIGS_DIR
-time python get_stats.py -u $USER_DIR -d $CONFIGS_DIR -s $START -e $END -n $NUM_INSTANCES -o $CONFIGS_DIR
+echo python3.5 get_stats.py -u $USER_DIR -d $CONFIGS_DIR -s $START -e $END -n $NUM_INSTANCES -o $CONFIGS_DIR
+time python3.5 get_stats.py -u $USER_DIR -d $CONFIGS_DIR -s $START -e $END -n $NUM_INSTANCES -o $CONFIGS_DIR
 
 
 
@@ -62,28 +62,28 @@ do
 
   # If some websites cannot finish loading within timeout after multiple tries, consider enlarging the timeout to 360s 
   date
-  echo python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=3 --policy_mode=1
-  time python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=3 --policy_mode=1
+  echo python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=3 --policy_mode=1
+  time python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=3 --policy_mode=1
 
   rm -rf exps/*
   cd $CWD
   sleep 10 # Use a small value for testing purpose. We used 120 in our large-scale experiments.
 
   date
-  echo python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
-  time python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+  echo python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+  time python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
 
   rm -rf exps/*
   cd $CWD
   sleep 10
 
   date
-  echo python compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
-  time python compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES
+  echo python3.5 compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
+  time python3.5 compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES
 
   date
-  echo python compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
-  time python compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
+  echo python3.5 compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
+  time python3.5 compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
 
   sleep 30 # Use a small value for testing purpose. We used 360 in our large-scale experiments.
 done
@@ -103,28 +103,28 @@ do
   cd $CWD
 
   date
-  echo python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1 --policy_mode=1
-  time python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1 --policy_mode=1
+  echo python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1 --policy_mode=1
+  time python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1 --policy_mode=1
 
   rm -rf exps/*
   cd $CWD
   sleep 10
 
   date
-  echo python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
-  time python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+  echo python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+  time python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
 
   rm -rf exps/*
   cd $CWD
   sleep 10
 
   date
-  echo python compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
-  time python compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES
+  echo python3.5 compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
+  time python3.5 compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES
 
   date
-  echo python compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
-  time python compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
+  echo python3.5 compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
+  time python3.5 compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
 
   sleep 30
 done
@@ -144,28 +144,28 @@ do
   cd $CWD
 
   date
-  echo python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=3 --policy_mode=0
-  time python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=3 --policy_mode=0
+  echo python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=3 --policy_mode=0
+  time python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=3 --policy_mode=0
 
   rm -rf exps/*
   cd $CWD
   sleep 10
 
   date
-  echo python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
-  time python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+  echo python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+  time python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
 
   rm -rf exps/*
   cd $CWD
   sleep 10
 
   date
-  echo python compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
-  time python compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES
+  echo python3.5 compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
+  time python3.5 compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES
 
   date
-  echo python compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
-  time python compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
+  echo python3.5 compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
+  time python3.5 compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
 
   sleep 30
 done
@@ -186,28 +186,28 @@ do
   cd $CWD
 
   date
-  echo python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1 --policy_mode=0
-  time python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1 --policy_mode=0
+  echo python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1 --policy_mode=0
+  time python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=1 --policy_mode=0
 
   rm -rf exps/*
   cd $CWD
   sleep 10
 
   date
-  echo python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
-  time python isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+  echo python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
+  time python3.5 isolation_and_record_performance.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -c $CONFIGS_DIR -n $NUM_INSTANCES -p $NUM_PROCESSES --log_pass=0
 
   rm -rf exps/*
   cd $CWD
   sleep 10
 
   date
-  echo python compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
-  time python compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES
+  echo python3.5 compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES 
+  time python3.5 compare_exception_nums.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -n $NUM_INSTANCES
 
   date
-  echo python compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
-  time python compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
+  echo python3.5 compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
+  time python3.5 compute_isolation_overhead.py -u $USER_DIR -d $PROXY_LOG_DIR -s $START -e $END -o $PROXY_LOG_DIR -n $NUM_INSTANCES
 
   sleep 30
 done
