@@ -6,17 +6,20 @@ In the released version, JSIsolate only isolate scripts in the main frames to im
 
 JSIsolate is implemented on Chromium (version 71.0.3578.98) and have been tested on Debian 9.11 (stretch).
 
-## Prerequisites
+## Setup
 
 We provide the data analysis python scripts in folder *python_scripts*. 
 
-We release the compiled binaries [here](https://zenodo.org/record/4903078), with a DOI of __10.5281/zenodo.4903078__. Please download the *.zip files, create a _binaries_ folder in the current folder, and put the unzipped folders in the _binaries_ folder first. The resulting directory should follow a structure of:
+We release the compiled binaries [here](https://zenodo.org/record/4903078), with a DOI of __10.5281/zenodo.4903078__. Please first download the *.zip files, create a _binaries_ folder in the current folder, and put the unzipped folders in the _binaries_ folder first. The resulting directory should follow a structure of:
 
 fse21-jsisolate-artifact/
 ├── python_scripts/
 │   ├── auto.sh
 │   ├── chromedriver
 │   ├── collect_logs.py
+│   └── ... ...
+├── patch_files/
+│   ├── build.patch
 │   └── ... ...
 ├── binaries/
 │   ├── clean/
@@ -28,18 +31,32 @@ fse21-jsisolate-artifact/
 ├── requirements.txt
 └── ... ...
 
-All the scripts have been tested in __Python 2.7.13__. 
+All the scripts have been tested in __Python 3.5.3__. 
 
 You need to install some python modules and the chromedriver (version 2.46.628388) as follows.
 
 ```shell
-pip install -r requirements.txt
+python3.5 -m pip install -r requirements.txt
 sudo cp python_scripts/chromedriver /usr/local/bin
 ```
 
 ## Executables
 
 We release the compiled binaries of JSIsolate, one for dumping object access logs (binaries/dump/chrome), one for enforcing script isolation (binaries/isolation/chrome), along with a Vanilla Chromium browser (binaries/clean/chrome).
+
+We also release the patch files of our implementation in the _patch\_files_ folder. To compile the browsers from source code, use the commands below. Remember to move the compiled bianries to the _binaries_ folder as mentioned above.
+
+```shell
+# Install depot_tools
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+export PATH=$PATH:/path/to/depot_tools
+
+# Fetch source and build
+./build_jsisolate.sh --all
+
+# For more information, use:
+./build_jsisolate.sh --help
+```
 
 ### Log collection browser
 
@@ -158,7 +175,8 @@ Compared with the *.configs-simple files, the *.configs files additionally provi
     				read timestamp,
     				read value,
     				read type,
-    				read identifier name 
+    				read identifier name,
+					duplicate_flag # true if two scripts are both from 3rd-party domains, false otherwise
     			],
     			... ...
     		},
@@ -171,6 +189,7 @@ Compared with the *.configs-simple files, the *.configs files additionally provi
     				read value,
     				read type,
     				read identifier name
+					duplicate_flag # true if two scripts are both from 3rd-party domains, false otherwise
     			]
     		}
     		"script_id": script ID, # ID of the current script
@@ -264,7 +283,7 @@ Additionally, we report the conflicting writes we detected in [rank].conflicts f
 
 ## Data Analysis
 
-We provide the data analysis scripts in folder *python_scripts*.
+We provide the data analysis scripts in folder *python_scripts*. 
 To fully automate the analysis, you may change *LOG_DIR* in *analysis.sh* to your local folder where you want to save the log files.
 You can further configure *START*, *END*, *NUM\_PROCESSE*S and *NUM\_INSTANCES* in _auto.sh_. Then run:
 
@@ -283,6 +302,8 @@ The above command will execute the following python scripts. You may comment som
 
 * domain_level_analyze_dependency.py: generate domain-level isolation policies
 
+* get_stats.py: summarize the statistics about the isolation policies, e.g., how many scripts from the third-party scripts are assigned to the first-party context
+
 * isolation_and_record_performance.py: launch JSIsolate in the policy enforcement mode and log the performance data
 
   If some websites cannot finish loading within the timeout after multiple tries, you may enlarge the timeout to, e.g., 360 and 320 in line 798 and 809, respectively. In large-scale scripts, however, we recommend to use a small timeout to save some time.
@@ -290,8 +311,6 @@ The above command will execute the following python scripts. You may comment som
 * compare_exception_nums.py: compare the JS exception numbers to evaluate the compatibility
 
 * compute_isolation_overhead.py: compute the script isolation overhead
-
-* get_stats.py: summarize the statistics about the isolation policies, e.g., how many scripts from the third-party scripts are assigned to the first-party context
 
 The following script is current commented. Uncomment it when measuring the log collection overhead.
 
