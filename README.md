@@ -12,24 +12,27 @@ We provide the data analysis python scripts in folder *python_scripts*.
 
 We release the compiled binaries [here](https://zenodo.org/record/4903078), with a DOI of __10.5281/zenodo.4903078__. Please first download the *.zip files, create a _binaries_ folder in the current folder, and put the unzipped folders in the _binaries_ folder first. The resulting directory should follow a structure of:
 
-fse21-jsisolate-artifact/
-├── python_scripts/
-│   ├── auto.sh
-│   ├── chromedriver
-│   ├── collect_logs.py
-│   └── ... ...
-├── patch_files/
-│   ├── build.patch
-│   └── ... ...
-├── binaries/
-│   ├── clean/
-|   ├── dump/
-│   └── isolation/
-├── CONTACT.md
-├── INSTALL.md
-├── README.md
-├── requirements.txt
-└── ... ...
+fse21-jsisolate-artifact/\
+|-- python_scripts/\
+|   |-- auto.sh\
+|   |-- chromedriver\
+|   |-- collect_logs.py\
+|   \-- ... ...\
+|
+|-- patch_files/\
+│   |-- build.patch\
+│   \-- ... ...\
+|
+|-- binaries/\
+|   |-- clean/\
+|   |-- dump/\
+|   \-- isolation/\
+|
+|-- CONTACT.md\
+|-- INSTALL.md\
+|-- README.md\
+|-- requirements.txt\
+\-- ... ...
 
 All the scripts have been tested in __Python 3.5.3__. 
 
