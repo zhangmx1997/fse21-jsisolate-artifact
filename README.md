@@ -295,7 +295,7 @@ cd python_scripts
 ./auto.sh
 ```
 
-The above command will execute the following python scripts. You may comment some of them to avoid redoing some computation.
+The above command will execute the following python scripts for reproducing our results step by step. You may comment some of them to avoid redoing some computation.
 
 * collect.py: collect object access logs for generating isolation policies
 
