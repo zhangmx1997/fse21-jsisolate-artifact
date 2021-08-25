@@ -341,6 +341,17 @@ Nevertheless, the problem is a known issue with Chromium (see chromium/src/third
 
 2. JSIsolate maintains a map from script ID to context ID to help determine the context for dynamic scripts (based on their initiator scripts). To differentiate scripts with the same URL but loaded in different frames, it creates the map for each frame separately. This may cause some problem when a script creates another script in a different frame, as in this case the initiator script record will be missing from the map of the current frame. Nonetheless, we use JSIsolate to isolate scripts in main frames only. We plan to fix it in the future.
 
+## Copyright Information
+Copyright © 2021 The Chinese University of Hong Kong
+
+### Additional Notes
+
+Notice that some files in JSIsolate may carry their own copyright notices.
+In particular, JSIsolate's code release contains modifications to source files from the Google Chromium project (https://www.chromium.org), which are distributed under their own original license.
+
+## License
+Check the LICENSE.md file.
+
 ## Contact ##
 
 Mingxue Zhang <mxzhang@cse.cuhk.edu.hk>
