@@ -4,7 +4,7 @@ JSIsolate is a system that provides an isolated and reliable JavaScript executio
 
 In the released version, JSIsolate only isolate scripts in the main frames to improve the reliability of first-party JavaScript code.
 
-JSIsolate is implemented on Chromium (version 71.0.3578.98) and have been tested on Debian 9.11 (stretch).
+JSIsolate is implemented on Chromium (version 71.0.3578.98) and has been tested on Debian 9.11 (stretch).
 
 The repository has been archived [here](https://doi.org/10.5281/zenodo.5091634), with a DOI of __10.5281/zenodo.5091634__.
 
@@ -354,6 +354,6 @@ Check the LICENSE.md file.
 
 ## Contact ##
 
-Mingxue Zhang <mxzhang@cse.cuhk.edu.hk>
+[Mingxue Zhang](https://zhangmx1997.github.io) <mxzhang@cse.cuhk.edu.hk>
 
 [Wei Meng](https://www.cse.cuhk.edu.hk/~wei/) <wei@cse.cuhk.edu.hk>

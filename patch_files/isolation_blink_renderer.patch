@@ -1634,7 +1634,7 @@ index 00000000..a75c672f
 +    return addResult.is_new_entry;
 +}
 +
-+bool DocumentInfoManager::setWorldID2HostID(const int worldID, int hostID) 
++bool DocumentInfoManager::setWorldID2HostID(int worldID, int hostID) 
 +{
 +    HashMap<int, int>::AddResult addResult = m_worldID2HostID.Set(worldID, hostID);
 +    return addResult.is_new_entry;
