@@ -83,7 +83,7 @@ cd binaries/dump
 # change CONFIG_FILE to a different one when testing different websites
 cd binaries/isolation
 CONFIG_FILE=domain.configs-simple FALLBACK_CONTEXT=1 POLICY_MODE=1 ./chrome --no-sandbox http://www.google.com
-CONFIG_FILE=url.configs-simple FALLBACK_CONTEXT=1 POLICY_MODE=1 ./chrome --no-sandbox http://www.google.com
+CONFIG_FILE=url.configs-simple FALLBACK_CONTEXT=1 POLICY_MODE=0 ./chrome --no-sandbox http://www.google.com
 ```
 
 ### Vanilla browser

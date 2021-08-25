@@ -12,16 +12,3 @@ index 68b3ae21865f..fc15ed99d638 100644
  
    // Associates an isolated world with human-readable name which is useful for
    // extension debugging.
-
-diff --git a/web_document.h b/web_document.h
-index 84f32a38a1f7..ec4742c70974 100644
---- a/web_document.h
-+++ b/web_document.h
-@@ -85,6 +85,7 @@ class WebDocument : public WebNode {
-   BLINK_EXPORT bool IsXHTMLDocument() const;
-   BLINK_EXPORT bool IsPluginDocument() const;
-   BLINK_EXPORT WebURL BaseURL() const;
-+  BLINK_EXPORT bool setWorldID2HostID(int, int) const;
- 
-   // The firstPartyForCookies is used to compute whether this document
-   // appears in a "third-party" context for the purpose of third-party
