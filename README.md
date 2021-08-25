@@ -6,7 +6,7 @@ In the released version, JSIsolate only isolate scripts in the main frames to im
 
 JSIsolate is implemented on Chromium (version 71.0.3578.98) and has been tested on Debian 9.11 (stretch).
 
-The repository has been archived [here](https://zenodo.org/record/5256660), with a DOI of __10.5281/zenodo.5256660__.
+The repository has been archived [here](https://zenodo.org/record/5256913), with a DOI of __10.5281/zenodo.5256913__.
 
 ## Setup
 
