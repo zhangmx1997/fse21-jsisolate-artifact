@@ -25,7 +25,7 @@ index d94d982b..d8e108c2 100644
                      "core/v8/script_controller.h",
                      "core/v8/script_custom_element_definition.cc",
 diff --git a/bindings/core/v8/binding_security.cc b/bindings/core/v8/binding_security.cc
-index 62c993e3..7642ef15 100644
+index 62c993e3..168aa8e0 100644
 --- a/bindings/core/v8/binding_security.cc
 +++ b/bindings/core/v8/binding_security.cc
 @@ -45,6 +45,11 @@
@@ -59,7 +59,7 @@ index 62c993e3..7642ef15 100644
 +  String frameSourceURL = toCoreStringOrDefault(frame->GetScriptNameOrSourceURL(), "<anonymous>");
 +  const KURL callerSourceURL = KURL(frameSourceURL);
 +
-+  if(!IsChromeURL(callerSourceURL.Protocol()) && !IsExtensionURL(callerSourceURL.Protocol())) {
++  if (callerSourceURL.GetString().IsEmpty() || (!IsChromeURL(callerSourceURL.Protocol()) && !IsExtensionURL(callerSourceURL.Protocol()))) {
 +    int scriptID = frame->GetScriptId();
 +    document->setScriptID2URL(scriptID, frameSourceURL); 
 +    initiator.append(String::Number(scriptID));
@@ -310,6 +310,24 @@ index 022c4e3c..35b229b1 100644
    if (!event_handler_
             ->InvokeWithoutRunnabilityCheck(event.currentTarget(), arguments)
             .To(&result) ||
+diff --git a/bindings/core/v8/scheduled_action.cc b/bindings/core/v8/scheduled_action.cc
+index 94b91e7e..7e3c9516 100644
+--- a/bindings/core/v8/scheduled_action.cc
++++ b/bindings/core/v8/scheduled_action.cc
+@@ -175,11 +175,12 @@ void ScheduledAction::Execute(LocalFrame* frame) {
+     // this causes failures on
+     // wpt/html/webappapis/scripting/processing-model-2/compile-error-cross-origin-setTimeout.html
+     // and friends.
++    
+     frame->GetScriptController().ExecuteScriptAndReturnValue(
+         script_state_->GetContext(),
+         ScriptSourceCode(code_,
+                          ScriptSourceLocationType::kEvalForScheduledAction),
+-        KURL(), kSharableCrossOrigin);
++        KURL(), kSharableCrossOrigin, script_state_->Get()->World().GetWorldId());
+   }
+ 
+   // The frame might be invalid at this point because JavaScript could have
 diff --git a/bindings/core/v8/script_call_stack_factory.cc b/bindings/core/v8/script_call_stack_factory.cc
 new file mode 100644
 index 00000000..33e884bc
@@ -478,10 +496,10 @@ index 00000000..1bfc6d88
 +
 +#endif // ScriptCallStackFactory_h
 diff --git a/bindings/core/v8/script_controller.cc b/bindings/core/v8/script_controller.cc
-index 91324875..8d0c43f1 100644
+index 91324875..c0354419 100644
 --- a/bindings/core/v8/script_controller.cc
 +++ b/bindings/core/v8/script_controller.cc
-@@ -67,6 +67,26 @@
+@@ -67,6 +67,27 @@
  #include "third_party/blink/renderer/platform/wtf/text/string_builder.h"
  #include "third_party/blink/renderer/platform/wtf/time.h"
  
@@ -502,13 +520,22 @@ index 91324875..8d0c43f1 100644
 +#include "extensions/renderer/scripts_run_info.h"
 +#include "third_party/blink/public/web/web_document.h"
 +#include "third_party/blink/public/web/web_frame.h"
++#include "base/debug/stack_trace.h"
 +
 +
 +
  namespace blink {
  
  void ScriptController::Trace(blink::Visitor* visitor) {
-@@ -123,8 +143,9 @@ v8::Local<v8::Value> ScriptController::ExecuteScriptAndReturnValue(
+@@ -89,6 +110,7 @@ v8::Local<v8::Value> ScriptController::ExecuteScriptAndReturnValue(
+     const ScriptSourceCode& source,
+     const KURL& base_url,
+     AccessControlStatus access_control_status,
++    const int& world_id,
+     const ScriptFetchOptions& fetch_options) {
+   TRACE_EVENT1(
+       "devtools.timeline", "EvaluateScript", "data",
+@@ -123,8 +145,17 @@ v8::Local<v8::Value> ScriptController::ExecuteScriptAndReturnValue(
      if (!V8ScriptRunner::CompileScript(ScriptState::From(context), source,
                                         access_control_status, compile_options,
                                         no_cache_reason, referrer_info)
@@ -516,10 +543,18 @@ index 91324875..8d0c43f1 100644
 +             .ToLocal(&script)) {
        return result;
 +    }
++
++    int host_id = GetFrame()->GetDocument()->getWorldID2HostID(world_id);
++    if(world_id == 0)
++      host_id = 1;
++
++    int scriptID = script->GetUnboundScript()->GetId();
++    GetFrame()->GetDocument()->setScriptID2HostID(scriptID, std::to_string(host_id));
++    GetFrame()->GetDocument()->setInitiator2WorldID(scriptID, String(std::to_string(host_id).c_str()));
  
      v8::MaybeLocal<v8::Value> maybe_result;
      maybe_result = V8ScriptRunner::RunCompiledScript(GetIsolate(), script,
-@@ -209,7 +230,8 @@ void ScriptController::UpdateDocument() {
+@@ -209,7 +240,8 @@ void ScriptController::UpdateDocument() {
  }
  
  bool ScriptController::ExecuteScriptIfJavaScriptURL(const KURL& url,
@@ -529,7 +564,7 @@ index 91324875..8d0c43f1 100644
    if (!url.ProtocolIsJavaScript())
      return false;
  
-@@ -252,10 +274,64 @@ bool ScriptController::ExecuteScriptIfJavaScriptURL(const KURL& url,
+@@ -252,10 +284,64 @@ bool ScriptController::ExecuteScriptIfJavaScriptURL(const KURL& url,
    // source, settings, base URL, and the default classic script fetch options."
    // [spec text]
    // We pass |kSharableCrossOrigin| because |muted errors| is false by default.
@@ -595,7 +630,7 @@ index 91324875..8d0c43f1 100644
  
    // If executing script caused this frame to be removed from the page, we
    // don't want to try to replace its document!
-@@ -317,6 +393,7 @@ v8::Local<v8::Value> ScriptController::EvaluateScriptInMainWorld(
+@@ -317,6 +403,7 @@ v8::Local<v8::Value> ScriptController::EvaluateScriptInMainWorld(
      AccessControlStatus access_control_status,
      const ScriptFetchOptions& fetch_options,
      ExecuteScriptPolicy policy) {
@@ -603,19 +638,40 @@ index 91324875..8d0c43f1 100644
    if (policy == kDoNotExecuteScriptWhenScriptsDisabled &&
        !GetFrame()->GetDocument()->CanExecuteScripts(kAboutToExecuteScript))
      return v8::Local<v8::Value>();
-@@ -332,6 +409,7 @@ v8::Local<v8::Value> ScriptController::EvaluateScriptInMainWorld(
+@@ -332,9 +419,10 @@ v8::Local<v8::Value> ScriptController::EvaluateScriptInMainWorld(
    if (GetFrame()->Loader().StateMachine()->IsDisplayingInitialEmptyDocument())
      GetFrame()->Loader().DidAccessInitialDocument();
  
 +  static_cast<ExecutionContext*>(GetFrame()->GetDocument())->setHostId(std::string("1"));
    v8::Local<v8::Value> object = ExecuteScriptAndReturnValue(
        script_state->GetContext(), source_code, base_url, access_control_status,
-       fetch_options);
+-      fetch_options);
++      script_state->World().GetWorldId(), fetch_options);
+ 
+   if (object.IsEmpty())
+     return v8::Local<v8::Value>();
+@@ -359,7 +447,7 @@ v8::Local<v8::Value> ScriptController::ExecuteScriptInIsolatedWorld(
+   v8::Context::Scope scope(context);
+ 
+   v8::Local<v8::Value> evaluation_result = ExecuteScriptAndReturnValue(
+-      context, source, base_url, access_control_status);
++      context, source, base_url, access_control_status, world_id);
+   if (!evaluation_result.IsEmpty())
+     return evaluation_result;
+   return v8::Local<v8::Value>::New(GetIsolate(), v8::Undefined(GetIsolate()));
 diff --git a/bindings/core/v8/script_controller.h b/bindings/core/v8/script_controller.h
-index 01501bfc..905dd1c1 100644
+index 01501bfc..50d500e9 100644
 --- a/bindings/core/v8/script_controller.h
 +++ b/bindings/core/v8/script_controller.h
-@@ -118,7 +118,7 @@ class CORE_EXPORT ScriptController final
+@@ -103,6 +103,7 @@ class CORE_EXPORT ScriptController final
+       const ScriptSourceCode&,
+       const KURL& base_url,
+       AccessControlStatus,
++      const int& world_id,
+       const ScriptFetchOptions& = ScriptFetchOptions());
+ 
+   // Executes JavaScript in an isolated world. The script gets its own global
+@@ -118,7 +119,7 @@ class CORE_EXPORT ScriptController final
        AccessControlStatus access_control_status);
  
    // Returns true if argument is a JavaScript URL.
@@ -624,7 +680,7 @@ index 01501bfc..905dd1c1 100644
  
    // Creates a new isolated world for DevTools with the given human readable
    // |world_name| and returns it id or nullptr on failure.
-@@ -147,10 +147,15 @@ class CORE_EXPORT ScriptController final
+@@ -147,10 +148,15 @@ class CORE_EXPORT ScriptController final
    static void RegisterExtensionIfNeeded(v8::Extension*);
    static V8Extensions& RegisteredExtensions();
  
@@ -641,7 +697,7 @@ index 01501bfc..905dd1c1 100644
  
    LocalFrame* GetFrame() const { return frame_; }
    v8::Isolate* GetIsolate() const {
-@@ -166,6 +171,9 @@ class CORE_EXPORT ScriptController final
+@@ -166,6 +172,9 @@ class CORE_EXPORT ScriptController final
  
    const Member<LocalFrame> frame_;
    const Member<LocalWindowProxyManager> window_proxy_manager_;
@@ -665,7 +721,7 @@ index 3fdc21bd..927556c3 100644
    // should not interfere with javascript code we might evaluate from C++ when
    // returning from here.
 diff --git a/bindings/core/v8/v8_script_runner.cc b/bindings/core/v8/v8_script_runner.cc
-index 695d6b77..71456283 100644
+index 695d6b77..9d4cce02 100644
 --- a/bindings/core/v8/v8_script_runner.cc
 +++ b/bindings/core/v8/v8_script_runner.cc
 @@ -47,6 +47,12 @@
@@ -681,23 +737,10 @@ index 695d6b77..71456283 100644
  namespace blink {
  
  namespace {
-@@ -285,9 +291,30 @@ v8::MaybeLocal<v8::Value> V8ScriptRunner::RunCompiledScript(
+@@ -285,9 +291,17 @@ v8::MaybeLocal<v8::Value> V8ScriptRunner::RunCompiledScript(
      // ToCoreString here should be zero copy due to externalized string
      // unpacked.
      probe::ExecuteScript probe(context, ToCoreString(script_url));
-+    int scriptID = script->GetUnboundScript()->GetId();
-+    if(!context->getHostId().empty()) {
-+      if(context->IsDocument()) {
-+        To<Document>(context)->setScriptID2HostID(scriptID, context->getHostId());
-+        To<Document>(context)->setInitiator2WorldID(scriptID, String(context->getHostId().c_str()));
-+      }
-+    }
-+    else {
-+      if(context->IsDocument()) {
-+        To<Document>(context)->setScriptID2HostID(scriptID, std::string("1"));
-+        To<Document>(context)->setInitiator2WorldID(scriptID, String("1"));
-+      }
-+    }
 +
      result = script->Run(isolate->GetCurrentContext());
    }
@@ -713,7 +756,7 @@ index 695d6b77..71456283 100644
    CHECK(!isolate->IsDead());
    return result;
  }
-@@ -323,6 +350,7 @@ v8::MaybeLocal<v8::Value> V8ScriptRunner::CompileAndRunInternalScript(
+@@ -323,6 +337,7 @@ v8::MaybeLocal<v8::Value> V8ScriptRunner::CompileAndRunInternalScript(
    v8::Isolate::SafeForTerminationScope safe_for_termination(isolate);
    v8::MicrotasksScope microtasks_scope(
        isolate, v8::MicrotasksScope::kDoNotRunMicrotasks);
@@ -721,7 +764,7 @@ index 695d6b77..71456283 100644
    v8::MaybeLocal<v8::Value> result = script->Run(isolate->GetCurrentContext());
    CHECK(!isolate->IsDead());
    return result;
-@@ -402,8 +430,8 @@ v8::MaybeLocal<v8::Value> V8ScriptRunner::CallFunction(
+@@ -402,8 +417,8 @@ v8::MaybeLocal<v8::Value> V8ScriptRunner::CallFunction(
    probe::CallFunction probe(context, function, depth);
    v8::MaybeLocal<v8::Value> result =
        function->Call(isolate->GetCurrentContext(), receiver, argc, args);
@@ -1383,7 +1426,7 @@ index 7ba01ff0..98a6a3e9 100644
    if (RuntimeEnabledFeatures::CSSScrollSnapPointsEnabled() &&
        !snap_coordinator_)
 diff --git a/core/dom/document.h b/core/dom/document.h
-index e5e57044..552bfaa0 100644
+index e5e57044..9c7187d2 100644
 --- a/core/dom/document.h
 +++ b/core/dom/document.h
 @@ -70,6 +70,11 @@
@@ -1398,7 +1441,7 @@ index e5e57044..552bfaa0 100644
  namespace base {
  class SingleThreadTaskRunner;
  }
-@@ -1353,12 +1358,30 @@ class CORE_EXPORT Document : public ContainerNode,
+@@ -1353,12 +1358,32 @@ class CORE_EXPORT Document : public ContainerNode,
    static void SetThreadedParsingEnabledForTesting(bool);
    static bool ThreadedParsingEnabledForTesting();
  
@@ -1421,16 +1464,18 @@ index e5e57044..552bfaa0 100644
 +  bool setNodeID2JSUrl(const int, const String&);
 +  bool setNodeID2JSUrlInitiator(const int, const String&);
 +  bool setInitiator2WorldID(const int, const String&);
++  bool setWorldID2HostID(const int, const int);
 +
 +  const String& getScriptID2URL(const int);
 +  std::string getScriptID2HostID(int);
 +  const String& getPosition2Initiator(const String&);
 +  const String& getNodeID2JSUrlInitiator(const int);
 +  const String& getInitiator2WorldID(const int);
++  int getWorldID2HostID(const int);
  
    SnapCoordinator* GetSnapCoordinator();
  
-@@ -1886,6 +1909,7 @@ class CORE_EXPORT Document : public ContainerNode,
+@@ -1886,6 +1911,7 @@ class CORE_EXPORT Document : public ContainerNode,
    Member<ResizeObserverController> resize_observer_controller_;
  
    int node_count_;
@@ -1438,7 +1483,7 @@ index e5e57044..552bfaa0 100644
  
    // Temporary flag for some UseCounter items. crbug.com/859391.
    InDOMNodeRemovedHandlerState in_dom_node_removed_handler_state_ =
-@@ -1918,6 +1942,9 @@ class CORE_EXPORT Document : public ContainerNode,
+@@ -1918,6 +1944,9 @@ class CORE_EXPORT Document : public ContainerNode,
    std::unique_ptr<ukm::UkmRecorder> ukm_recorder_;
    int64_t ukm_source_id_;
  
@@ -1448,7 +1493,7 @@ index e5e57044..552bfaa0 100644
  #if DCHECK_IS_ON()
    unsigned slot_assignment_recalc_forbidden_recursion_depth_;
  #endif
-@@ -1953,6 +1980,64 @@ class CORE_EXPORT Document : public ContainerNode,
+@@ -1953,6 +1982,69 @@ class CORE_EXPORT Document : public ContainerNode,
  
  extern template class CORE_EXTERN_TEMPLATE_EXPORT Supplement<Document>;
  
@@ -1472,8 +1517,6 @@ index e5e57044..552bfaa0 100644
 +    const int scriptID, const String& parentScriptID) {
 +  return m_documentInfoManager.setScriptID2ParentScriptID(scriptID, parentScriptID);
 +}
-+
-+
 +
 +inline const String& Document::getScriptID2URL(const int scriptID) {
 +  return m_documentInfoManager.getScriptID2URL(scriptID);
@@ -1508,6 +1551,13 @@ index e5e57044..552bfaa0 100644
 +  return m_documentInfoManager.setInitiator2WorldID(scriptID, worldID);
 +}
 +
++inline bool Document::setWorldID2HostID(const int worldID, const int hostID) {
++  return m_documentInfoManager.setWorldID2HostID(worldID, hostID);
++}
++
++inline int Document::getWorldID2HostID(const int worldID) {
++  return m_documentInfoManager.getWorldID2HostID(worldID);
++}
 +
 +
  inline void Document::ScheduleLayoutTreeUpdateIfNeeded() {
@@ -1551,10 +1601,10 @@ index 83d8beb1..832288c3 100644
      // https://w3c.github.io/page-visibility/#extensions-to-the-document-interface
 diff --git a/core/dom/document_info_manager.cc b/core/dom/document_info_manager.cc
 new file mode 100644
-index 00000000..05766f90
+index 00000000..a75c672f
 --- /dev/null
 +++ b/core/dom/document_info_manager.cc
-@@ -0,0 +1,207 @@
+@@ -0,0 +1,220 @@
 +#include "config.h"
 +#include "base/environment.h"
 +#include "third_party/blink/renderer/core/dom/document_info_manager.h"
@@ -1584,6 +1634,11 @@ index 00000000..05766f90
 +    return addResult.is_new_entry;
 +}
 +
++bool DocumentInfoManager::setWorldID2HostID(const int worldID, int hostID) 
++{
++    HashMap<int, int>::AddResult addResult = m_worldID2HostID.Set(worldID, hostID);
++    return addResult.is_new_entry;
++}
 +
 +bool DocumentInfoManager::setNodeID2JSUrl(int nodeID, const String& JSUrl)
 +{
@@ -1617,6 +1672,14 @@ index 00000000..05766f90
 +    HashMap<int, String>::iterator it = m_scriptID2URL.find(scriptID);
 +    if (it == m_scriptID2URL.end())
 +        return m_emptyString;
++    return it->value;
++}
++
++int DocumentInfoManager::getWorldID2HostID(const int worldID)
++{
++    HashMap<int, int>::iterator it = m_worldID2HostID.find(worldID);
++    if (it == m_worldID2HostID.end())
++        return -1;
 +    return it->value;
 +}
 +
@@ -1764,10 +1827,10 @@ index 00000000..05766f90
 +}
 diff --git a/core/dom/document_info_manager.h b/core/dom/document_info_manager.h
 new file mode 100644
-index 00000000..96feb3a9
+index 00000000..9b05facb
 --- /dev/null
 +++ b/core/dom/document_info_manager.h
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,48 @@
 +#ifndef Document_Info_Manager_H
 +#define Document_Info_Manager_H
 +
@@ -1787,10 +1850,12 @@ index 00000000..96feb3a9
 +    bool setScriptID2HostID(int, std::string);
 +    bool setScriptID2ParentScriptID(int, const String&);
 +    bool setNodeID2JSUrl(int, const String&);
++    bool setWorldID2HostID(int, int);
 +    bool setNodeID2JSUrlInitiator(int, const String&);
 +    bool setPosition2Initiator(const String&, const String&);
 +    const String& getScriptID2URL(int);
 +    std::string getScriptID2HostID(int);
++    int getWorldID2HostID(const int);
 +    const String& getNodeID2JSUrl(int);
 +    const String& getNodeID2JSUrlInitiator(int);
 +    const String& getPosition2Initiator(const String&);
@@ -1802,6 +1867,7 @@ index 00000000..96feb3a9
 +private:
 +    HashMap<int, String> m_scriptID2URL; // scriptID -> sourceURL
 +    HashMap<int, std::string> m_scriptID2HostID; // scriptID -> hostID
++    HashMap<int, int> m_worldID2HostID; // worldID -> hostID
 +    HashMap<int, String> m_scriptID2ParentScriptID; // scriptID -> parentScriptID
 +    HashMap<int, String> m_nodeID2JSUrl; // nodeID -> JSURL
 +    HashMap<int, String> m_nodeID2JSUrlInitiator; // nodeID -> JSURL initiator
@@ -2221,6 +2287,22 @@ index d0f26b59..9b42258a 100644
  };
  
  }  // namespace blink
+diff --git a/core/exported/web_document.cc b/core/exported/web_document.cc
+index ccf99e79..8e6acb9c 100644
+--- a/core/exported/web_document.cc
++++ b/core/exported/web_document.cc
+@@ -133,6 +133,11 @@ WebURL WebDocument::BaseURL() const {
+   return ConstUnwrap<Document>()->BaseURL();
+ }
+ 
++bool WebDocument::setWorldID2HostID(int worldID, int hostID) const {
++  const Document* document = ConstUnwrap<Document>();
++  return const_cast<Document*>(document)->setWorldID2HostID(worldID, hostID);
++}
++
+ WebURL WebDocument::SiteForCookies() const {
+   return ConstUnwrap<Document>()->SiteForCookies();
+ }
 diff --git a/core/frame/pausable_script_executor.cc b/core/frame/pausable_script_executor.cc
 index dff54987..2b069d33 100644
 --- a/core/frame/pausable_script_executor.cc
@@ -30792,7 +30874,7 @@ index 96150727..00c61b94 100644
  
    friend class ModulatorImplBase;
 diff --git a/core/script/pending_script.cc b/core/script/pending_script.cc
-index 2a3901ed..6c5bfd72 100644
+index 2a3901ed..01afe65c 100644
 --- a/core/script/pending_script.cc
 +++ b/core/script/pending_script.cc
 @@ -35,6 +35,14 @@
@@ -30810,7 +30892,7 @@ index 2a3901ed..6c5bfd72 100644
  namespace blink {
  
  namespace {
-@@ -266,12 +274,280 @@ void PendingScript::ExecuteScriptBlockInternal(
+@@ -266,12 +274,300 @@ void PendingScript::ExecuteScriptBlockInternal(
      //
      // <spec step="5.B.2">Run the module script given by the script's
      // script.</spec>
@@ -30846,7 +30928,6 @@ index 2a3901ed..6c5bfd72 100644
 +          if(!script_element->Src().GetString()) {
 +            String parent_world_id = element_document.getInitiator2WorldID(initiator.ToIntStrict());
 +            script_element->SetWorldID(parent_world_id);
-+
 +          }
 +          else {
 +            if(!net::registry_controlled_domains::SameDomainOrHost(GURL(script_element->Src().GetString().Utf8().data()), GURL(element_document.Url().GetString().Utf8().data()), net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES)) {
@@ -30864,7 +30945,6 @@ index 2a3901ed..6c5bfd72 100644
 +          if(!script_element->Src().GetString()) {
 +            String parent_world_id = element_document.getInitiator2WorldID(initiator.ToIntStrict());
 +            script_element->SetWorldID(parent_world_id);
-+
 +          }
 +          else {
 +            std::string script_domain = net::registry_controlled_domains::GetDomainAndRegistry(GURL(script_element->Src().GetString().Utf8().data()), net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
@@ -30962,6 +31042,14 @@ index 2a3901ed..6c5bfd72 100644
 +                  // approximate match on script url
 +                  for(auto& it_ : configs.items()) {
 +                    std::string match_cond = it_.key();
++                      
++                    std::string match_cond_for_domain = match_cond;
++                    if(match_cond.find("//") == 0)
++                      match_cond_for_domain = "http:"+ match_cond; 
++                    std::string match_cond_domain = net::registry_controlled_domains::GetDomainAndRegistry(GURL(match_cond_for_domain), net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
++                    if(match_cond_domain != script_domain)
++                      continue;
++                      
 +                    unsigned int minlen = cond.length();
 +                    unsigned int maxlen = cond.length();
 +                    double diffcnt = 0;
@@ -30994,6 +31082,12 @@ index 2a3901ed..6c5bfd72 100644
 +              bool found_approx_match = false;
 +              for(nlohmann::json::iterator it = policy.begin(); it != policy.end(); ++it) {
 +                std::string config_frame_url = it.key();
++
++                std::string match_cond_for_domain1 = config_frame_url;
++                std::string match_cond_domain1 = net::registry_controlled_domains::GetDomainAndRegistry(GURL(match_cond_for_domain1), net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
++                if(match_cond_domain1 != frame_domain)
++                  continue;
++
 +                unsigned int minlen = config_frame_url.length();
 +                unsigned int maxlen = config_frame_url.length();
 +                double diffcnt = 0;
@@ -31034,6 +31128,14 @@ index 2a3901ed..6c5bfd72 100644
 +                    else {
 +                      for(auto& it_ : configs.items()) {
 +                        std::string match_cond = it_.key();
++    
++                        std::string match_cond_for_domain2 = match_cond;
++                        if(match_cond.find("//") == 0)
++                          match_cond_for_domain2 = "http:" + match_cond; 
++                        std::string match_cond_domain2 = net::registry_controlled_domains::GetDomainAndRegistry(GURL(match_cond_for_domain2), net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
++                        if(match_cond_domain2 != script_domain)
++                          continue;
++
 +                        unsigned int minlen = cond.length();
 +                        unsigned int maxlen = cond.length();
 +                        double diffcnt = 0;

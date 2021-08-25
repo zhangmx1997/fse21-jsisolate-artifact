@@ -109,7 +109,7 @@ apply_patch_isolation ()
   cd $CHROMIUM/src/third_party/blink/renderer && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/isolation_blink_renderer.patch
   cd $CHROMIUM/src/v8 && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/isolation_v8.patch
   cd $CHROMIUM/src/content && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/isolation_content.patch
-  cd $CHROMIUM/src/extensions && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/extension.patch
+  cd $CHROMIUM/src/extensions && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/isolation_extension.patch
   cd $CHROMIUM/src/build/config/compiler && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/build.patch
   run_hooks
 } # ----------  end of function apply_patch_isolation ----------
@@ -127,7 +127,7 @@ apply_patch_dump ()
   cd $CHROMIUM/src/third_party/blink/renderer && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/dump_blink_renderer.patch
   cd $CHROMIUM/src/v8 && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/dump_v8.patch
   cd $CHROMIUM/src/content && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/dump_content.patch
-  cd $CHROMIUM/src/extensions && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/extension.patch
+  cd $CHROMIUM/src/extensions && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/dump_extension.patch
   cd $CHROMIUM/src/build/config/compiler && git clean -df && git checkout -- . && patch -p1 < $ROOT/$PATCH_DIR/build.patch
   run_hooks
 } # ----------  end of function apply_patch_dump ----------
